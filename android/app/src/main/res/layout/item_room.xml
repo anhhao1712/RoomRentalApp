@@ -1,0 +1,12 @@
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginVertical="7dp" app:cardBackgroundColor="@color/surface" app:cardCornerRadius="16dp" app:cardElevation="0dp" app:strokeColor="#E2E8F0" app:strokeWidth="1dp">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:padding="10dp">
+        <ImageView android:id="@+id/roomImage" android:layout_width="108dp" android:layout_height="108dp" android:background="#E2E8F0" android:contentDescription="Ảnh phòng" android:scaleType="centerCrop"/>
+        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginStart="12dp" android:layout_weight="1" android:orientation="vertical">
+            <TextView android:id="@+id/roomTitle" android:layout_width="match_parent" android:layout_height="wrap_content" android:maxLines="2" android:textColor="@color/text_primary" android:textSize="16sp" android:textStyle="bold"/>
+            <TextView android:id="@+id/roomPrice" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="6dp" android:textColor="@color/primary" android:textSize="16sp" android:textStyle="bold"/>
+            <TextView android:id="@+id/roomMeta" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:textColor="@color/text_secondary" android:textSize="13sp"/>
+            <TextView android:id="@+id/roomAddress" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:maxLines="2" android:textColor="@color/text_secondary" android:textSize="12sp"/>
+        </LinearLayout>
+        <ImageButton android:id="@+id/favoriteButton" android:layout_width="38dp" android:layout_height="38dp" android:background="@android:color/transparent" android:contentDescription="Lưu" android:src="@android:drawable/btn_star_big_off"/>
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>
