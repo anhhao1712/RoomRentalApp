@@ -1,0 +1,28 @@
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto" android:layout_width="match_parent" android:layout_height="match_parent" android:background="@color/background" android:fillViewport="true">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_margin="24dp" android:gravity="center_horizontal" android:orientation="vertical">
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="48dp" android:text="Thuê Trọ" android:textColor="@color/primary" android:textSize="32sp" android:textStyle="bold"/>
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:text="Tìm phòng phù hợp với bạn" android:textColor="@color/text_secondary" android:textSize="16sp"/>
+        <com.google.android.material.card.MaterialCardView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="36dp" app:cardBackgroundColor="@color/surface" app:cardCornerRadius="18dp" app:cardElevation="0dp" app:strokeColor="#E2E8F0" app:strokeWidth="1dp">
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="20dp">
+                <TextView android:id="@+id/titleAuth" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Đăng nhập" android:textColor="@color/text_primary" android:textSize="22sp" android:textStyle="bold"/>
+                <com.google.android.material.textfield.TextInputLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="20dp" android:hint="Tên đăng nhập">
+                    <com.google.android.material.textfield.TextInputEditText android:id="@+id/inputUsername" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="text"/>
+                </com.google.android.material.textfield.TextInputLayout>
+                <com.google.android.material.textfield.TextInputLayout android:id="@+id/layoutFullName" android:layout_width="match_parent" android:layout_height="wrap_content" android:visibility="gone" android:hint="Họ và tên">
+                    <com.google.android.material.textfield.TextInputEditText android:id="@+id/inputFullName" android:layout_width="match_parent" android:layout_height="wrap_content"/>
+                </com.google.android.material.textfield.TextInputLayout>
+                <com.google.android.material.textfield.TextInputLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:hint="Mật khẩu" app:endIconMode="password_toggle">
+                    <com.google.android.material.textfield.TextInputEditText android:id="@+id/inputPassword" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="textPassword"/>
+                </com.google.android.material.textfield.TextInputLayout>
+                <Spinner android:id="@+id/roleSpinner" android:layout_width="match_parent" android:layout_height="48dp" android:layout_marginTop="8dp" android:visibility="gone"/>
+                <LinearLayout android:id="@+id/landlordTerms" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:orientation="vertical" android:visibility="gone">
+                    <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Điều khoản Chủ trọ:\n1. Cung cấp thông tin phòng chính xác.\n2. Chịu trách nhiệm về tin đăng.\n3. Không đăng tin giả hoặc vi phạm pháp luật.\n4. Đồng ý để ứng dụng xử lý dữ liệu thuê trọ." android:textColor="@color/text_secondary" android:textSize="13sp"/>
+                    <CheckBox android:id="@+id/acceptTerms" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Tôi đồng ý với điều khoản và dịch vụ" android:textColor="@color/text_primary"/>
+                </LinearLayout>
+                <com.google.android.material.button.MaterialButton android:id="@+id/buttonSubmit" android:layout_width="match_parent" android:layout_height="52dp" android:layout_marginTop="22dp" android:text="Đăng nhập" app:cornerRadius="12dp"/>
+                <TextView android:id="@+id/buttonToggle" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="18dp" android:gravity="center" android:text="Chưa có tài khoản? Đăng ký" android:textColor="@color/primary" android:textSize="14sp"/>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+        <TextView android:id="@+id/demoNote" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="20dp" android:text="Tài khoản mẫu: admin / 123" android:textColor="@color/text_secondary"/>
+    </LinearLayout>
+</ScrollView>
