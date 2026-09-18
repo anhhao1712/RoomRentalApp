@@ -1,0 +1,12 @@
+.idea/
+.gradle/
+build/
+**/build/
+local.properties
+*.iml
+.env
+uploads/
+server/node_modules/
+server/.env
+server/secrets/
+*.apk
