@@ -26,9 +26,19 @@ Rules này chặn mọi truy cập trực tiếp từ ứng dụng. Node.js API 
 
 File này đã được bỏ qua bởi Git; không đăng lên GitHub và không gửi nội dung file vào chat.
 
-## 3. Cấu hình và chạy Node.js
+## 3. Đăng ký Cloudinary (để upload ảnh phòng, miễn phí, không cần thẻ)
 
-Trong thư mục `server`, sao chép `.env.example` thành `.env`. Giữ đường dẫn Service Account như mặc định, nhưng thay `JWT_SECRET` bằng một chuỗi ngẫu nhiên dài.
+Firebase Storage hiện bắt buộc nâng cấp gói Blaze (cần thẻ ngân hàng) nên project này dùng **Cloudinary** để lưu ảnh thay thế — có gói miễn phí vĩnh viễn (25GB lưu trữ, 25GB băng thông/tháng), không cần khai báo thẻ.
+
+1. Vào [cloudinary.com](https://cloudinary.com), bấm **Sign up for free**, đăng ký bằng email hoặc Google.
+2. Sau khi vào Dashboard, ngay trang chủ sẽ thấy 3 thông tin: **Cloud name**, **API Key**, **API Secret** (bấm vào icon con mắt để hiện API Secret).
+3. Copy 3 giá trị này vào file `server/.env` ở bước 4 bên dưới, tương ứng với `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`.
+
+Chỉ cần 1 người trong nhóm đăng ký 1 tài khoản Cloudinary rồi chia 3 giá trị này cho cả nhóm dùng chung là đủ (không cần mỗi người 1 tài khoản riêng như Firebase Service Account, vì đây không phải thông tin đăng nhập nhạy cảm ở mức đó — tuy vậy vẫn nên giữ trong `.env`, không đưa lên GitHub, để tránh người lạ lợi dụng quota upload).
+
+## 4. Cấu hình và chạy Node.js
+
+Trong thư mục `server`, sao chép `.env.example` thành `.env`. Giữ đường dẫn Service Account như mặc định, điền 3 biến `CLOUDINARY_...` theo bước 3, và thay `JWT_SECRET` bằng một chuỗi ngẫu nhiên dài.
 
 ```powershell
 npm install

@@ -1,8 +1,10 @@
 package vn.edu.thuetro.data
 
+import okhttp3.MultipartBody
 import retrofit2.http.*
 
 interface ApiService {
+    @Multipart @POST("api/uploads/image") suspend fun uploadImage(@Part image: MultipartBody.Part): ApiResponse<Map<String, String>>
     @POST("api/auth/login") suspend fun login(@Body body: LoginRequest): ApiResponse<AuthResponse>
     @POST("api/auth/register") suspend fun register(@Body body: RegisterRequest): ApiResponse<AuthResponse>
     @GET("api/rooms") suspend fun rooms(@Query("q") q: String? = null, @Query("district") district: String? = null, @Query("minPrice") minPrice: Long? = null, @Query("maxPrice") maxPrice: Long? = null, @Query("sort") sort: String? = null): ApiResponse<List<Room>>

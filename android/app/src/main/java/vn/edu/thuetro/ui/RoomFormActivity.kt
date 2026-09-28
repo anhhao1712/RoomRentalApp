@@ -1,12 +1,18 @@
 package vn.edu.thuetro.ui
 
+import android.net.Uri
 import android.os.Bundle
 import android.view.View
 import android.widget.*
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
+import coil.load
 import com.google.android.material.textfield.TextInputEditText
 import kotlinx.coroutines.launch
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.toRequestBody
 import vn.edu.thuetro.R
 import vn.edu.thuetro.data.*
 
@@ -15,6 +21,7 @@ class RoomFormActivity : AppCompatActivity() {
     private val statusCodes = listOf("AVAILABLE", "RESERVED", "RENTED", "HIDDEN")
     private val statusLabels = listOf("Còn trống", "Đã giữ chỗ", "Đã cho thuê", "Ẩn tin")
     private lateinit var api: ApiService
+    private val pickImage = registerForActivityResult(ActivityResultContracts.GetContent()) { uri -> uri?.let { uploadImage(it) } }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -24,7 +31,48 @@ class RoomFormActivity : AppCompatActivity() {
         findViewById<Spinner>(R.id.areaSpinner).adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, AreaCatalog.options.map { it.label })
         findViewById<Button>(R.id.save).setOnClickListener { save() }
         findViewById<Button>(R.id.delete).setOnClickListener { confirm("Ẩn tin đăng", "Tin sẽ không còn hiển thị với người thuê.") { delete() } }
+        findViewById<Button>(R.id.pickImage).setOnClickListener { pickImage.launch("image/*") }
         loadAmenities()
+    }
+
+    private fun uploadImage(uri: Uri) = lifecycleScope.launch {
+        try {
+            findViewById<Button>(R.id.pickImage).isEnabled = false
+            toast("Đang tải ảnh lên...")
+            val bytes = contentResolver.openInputStream(uri)?.use { it.readBytes() }
+            if (bytes == null) { toast("Không đọc được ảnh đã chọn."); return@launch }
+            val mimeType = contentResolver.getType(uri) ?: "image/jpeg"
+            val ext = if (mimeType.contains("png")) "png" else "jpg"
+            val body = bytes.toRequestBody(mimeType.toMediaTypeOrNull())
+            val part = MultipartBody.Part.createFormData("image", "room.$ext", body)
+            val result = api.uploadImage(part)
+            val url = result.data?.get("url")
+            if (result.success && url != null) { addImageUrl(url); toast("Đã thêm ảnh.") }
+            else toast(result.message.ifBlank { "Tải ảnh lên thất bại." })
+        } catch (_: Exception) { toast("Tải ảnh lên thất bại. Kiểm tra kết nối tới server.") }
+        finally { findViewById<Button>(R.id.pickImage).isEnabled = true }
+    }
+
+    private fun addImageUrl(url: String) {
+        val field = findViewById<TextInputEditText>(R.id.images)
+        val current = field.text?.toString().orEmpty().trim()
+        field.setText(if (current.isBlank()) url else "$current\n$url")
+        refreshPreview()
+    }
+
+    private fun refreshPreview() {
+        val holder = findViewById<LinearLayout>(R.id.imagePreview)
+        holder.removeAllViews()
+        val size = (88 * resources.displayMetrics.density).toInt()
+        val margin = (8 * resources.displayMetrics.density).toInt()
+        value(R.id.images).lines().map { it.trim() }.filter { it.isNotBlank() }.forEach { url ->
+            val iv = ImageView(this).apply {
+                layoutParams = LinearLayout.LayoutParams(size, size).apply { marginEnd = margin }
+                scaleType = ImageView.ScaleType.CENTER_CROP
+                load(url)
+            }
+            holder.addView(iv)
+        }
     }
 
     private fun loadAmenities() = lifecycleScope.launch {
@@ -47,7 +95,7 @@ class RoomFormActivity : AppCompatActivity() {
             text(R.id.price, room.price.toString()); text(R.id.area, room.area.toString()); text(R.id.maxTenants, room.maxTenants.toString())
             text(R.id.deposit, room.deposit.toString()); text(R.id.electricityPrice, room.electricityPrice.toString())
             text(R.id.waterPrice, room.waterPrice.toString()); text(R.id.internetFee, room.internetFee.toString())
-            text(R.id.images, room.images.joinToString("\n"))
+            text(R.id.images, room.images.joinToString("\n")); refreshPreview()
             findViewById<Spinner>(R.id.status).setSelection(statusCodes.indexOf(room.status).coerceAtLeast(0))
             val selected = room.amenities.map { it.id }.toSet()
             val holder = findViewById<LinearLayout>(R.id.amenityContainer)

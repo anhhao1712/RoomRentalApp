@@ -3,12 +3,15 @@ const express = require('express');
 const cors = require('cors');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const multer = require('multer');
 const { db, admin } = require('./firebase');
+const { uploadImageBuffer } = require('./cloudinary');
 const { AMENITIES, ROOM_STATUSES, REQUEST_STATUSES, AREAS } = require('./constants');
 
 const app = express();
 const port = Number(process.env.PORT || 8080);
 const jwtSecret = process.env.JWT_SECRET || 'chi-dung-cho-phat-trien-local';
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } });
 app.use(cors());
 app.use(express.json({ limit: '1mb' }));
 
@@ -127,6 +130,14 @@ app.post('/api/rooms/:id/requests', requireRole('TENANT', 'ADMIN'), async (req, 
 app.get('/api/requests', async (req, res) => { try { let data = (await db.collection('rentalRequests').get()).docs.map((doc) => doc.data()); if (req.user.role === 'LANDLORD') data = data.filter((item) => item.ownerId === req.user.id); if (req.user.role === 'TENANT') data = data.filter((item) => item.tenantId === req.user.id); const result = await Promise.all(data.sort((a,b)=>String(b.createdAt).localeCompare(String(a.createdAt))).map(async (item) => { const [room, tenant] = await Promise.all([roomById(item.roomId), getUser(item.tenantId)]); return { id: item.id, roomId: item.roomId, roomTitle: room?.title || 'Phòng đã xóa', tenantId: item.tenantId, tenantName: tenant?.fullName || 'Người dùng', tenantPhone: item.contactPhone || tenant?.phone || null, message: item.message, viewingTime: item.viewingTime, status: item.status, ownerNote: item.ownerNote, createdAt: item.createdAt }; })); return ok(res, '', result); } catch (error) { return fail(res, error.message, 500); } });
 app.patch('/api/requests/:id', requireRole('LANDLORD', 'ADMIN'), async (req, res) => { try { const ref = db.collection('rentalRequests').doc(String(req.params.id)); const snap = await ref.get(); if (!snap.exists) return fail(res, 'Không tìm thấy yêu cầu.', 404); const item = snap.data(); if (req.user.role !== 'ADMIN' && item.ownerId !== req.user.id) return fail(res, 'Bạn không có quyền xử lý yêu cầu.', 403); if (!['ACCEPTED', 'REJECTED', 'CANCELLED'].includes(req.body.status)) return fail(res, 'Trạng thái không hợp lệ.'); await ref.update({ status: req.body.status, ownerNote: req.body.ownerNote || null, updatedAt: now() }); return ok(res, 'Đã cập nhật yêu cầu.', true); } catch (error) { return fail(res, error.message, 500); } });
 
+app.post('/api/uploads/image', requireRole('LANDLORD', 'ADMIN'), upload.single('image'), async (req, res) => {
+  try {
+    if (!req.file) return fail(res, 'Vui lòng chọn một ảnh để tải lên.');
+    if (!req.file.mimetype?.startsWith('image/')) return fail(res, 'File phải là ảnh (jpg, png, ...).');
+    const url = await uploadImageBuffer(req.file.buffer, req.file.mimetype, `rooms/${req.user.id}`);
+    return ok(res, 'Đã tải ảnh lên.', { url }, 201);
+  } catch (error) { return fail(res, error.message, 500); }
+});
 app.get('/api/owner/rooms', requireRole('LANDLORD', 'ADMIN'), async (req, res) => { try { let rooms = (await db.collection('rooms').get()).docs.map((doc) => doc.data()).filter((room) => !room.deletedAt); if (req.user.role !== 'ADMIN') rooms = rooms.filter((room) => room.ownerId === req.user.id); return ok(res, '', await Promise.all(rooms.map((room) => roomDto(room, req.user.id)))); } catch (error) { return fail(res, error.message, 500); } });
 app.post('/api/rooms', requireRole('LANDLORD', 'ADMIN'), async (req, res) => { try { const id = numberId(); const room = { id, ...roomPayload(req.body, req.user.id), createdAt: now(), deletedAt: null }; await db.collection('rooms').doc(String(id)).set(room); return ok(res, 'Đăng phòng thành công.', { id }, 201); } catch (error) { return fail(res, error.message); } });
 app.put('/api/rooms/:id', requireRole('LANDLORD', 'ADMIN'), async (req, res) => { try { const room = await roomById(req.params.id); if (!room) return fail(res, 'Không tìm thấy phòng.', 404); if (req.user.role !== 'ADMIN' && room.ownerId !== req.user.id) return fail(res, 'Không có quyền sửa phòng này.', 403); await db.collection('rooms').doc(String(room.id)).update(roomPayload(req.body, room.ownerId)); return ok(res, 'Đã cập nhật phòng.', true); } catch (error) { return fail(res, error.message); } });
