@@ -8,7 +8,7 @@ val localConfig = Properties().apply {
     val configFile = rootProject.file("local.properties")
     if (configFile.exists()) configFile.inputStream().use(::load)
 }
-val apiBaseUrl = localConfig.getProperty("API_BASE_URL", "http://10.11.4.29:8080/")
+val apiBaseUrl = localConfig.getProperty("API_BASE_URL", "http://192.168.1.3:8080/")
     .trim()
     .let { if (it.endsWith('/')) it else "$it/" }
 
@@ -40,4 +40,5 @@ dependencies {
     implementation(libs.retrofit.gson)
     implementation(libs.okhttp.logging)
     implementation(libs.coil)
+    implementation(libs.osmdroid)
 }

@@ -55,9 +55,21 @@ async function roomDto(room, viewerId = null) {
     maxTenants: room.maxTenants || 2, deposit: room.deposit || 0, electricityPrice: room.electricityPrice || 3500,
     waterPrice: room.waterPrice || 15000, internetFee: room.internetFee || 0, status: room.status,
     images: room.images || [], amenities: AMENITIES.filter((item) => (room.amenityIds || []).includes(item.id)),
-    isFavorite, createdAt: room.createdAt || null
+    isFavorite, createdAt: room.createdAt || null,
+    latitude: typeof room.latitude === 'number' ? room.latitude : null,
+    longitude: typeof room.longitude === 'number' ? room.longitude : null
   };
 }
+function parseCoordinates(body) {
+  const { latitude, longitude } = body;
+  if (latitude == null && longitude == null) return {};
+  if (typeof latitude !== 'number' || typeof longitude !== 'number' || !Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+      throw new Error('Tọa độ phải gồm cả vĩ độ và kinh độ dạng số.');
+  }
+  if (Math.abs(latitude) > 90 || Math.abs(longitude) > 180) throw new Error('Tọa độ không hợp lệ.');
+  return { latitude, longitude };
+}
+
 function roomPayload(body, ownerId) {
   if (!body.title?.trim() || !body.address?.trim() || !Number(body.price) || !Number(body.area)) throw new Error('Nhập đủ tiêu đề, địa chỉ, giá và diện tích.');
   const selectedArea = AREAS.find((item) => item.district === body.district);
@@ -70,6 +82,7 @@ function roomPayload(body, ownerId) {
     status: ROOM_STATUSES.includes(body.status) ? body.status : 'AVAILABLE',
     images: Array.isArray(body.imageUrls) ? body.imageUrls.filter(Boolean).slice(0, 8) : [],
     amenityIds: Array.isArray(body.amenityIds) ? body.amenityIds.map(Number).filter((id) => AMENITIES.some((item) => item.id === id)) : [],
+    ...parseCoordinates(body),
     updatedAt: now()
   };
 }

@@ -21,7 +21,7 @@ class AuthActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         session = SessionManager(this)
-        if (session.token != null) { openMain(); return }
+        if (session.token != null) { openMain(); return }git
         setContentView(R.layout.activity_auth)
         api = ApiClient.service(this)
         val roleSpinner = findViewById<Spinner>(R.id.roleSpinner)
@@ -33,6 +33,7 @@ class AuthActivity : AppCompatActivity() {
         findViewById<TextView>(R.id.buttonToggle).setOnClickListener { registerMode = !registerMode; renderMode() }
         findViewById<Button>(R.id.buttonSubmit).setOnClickListener { submit() }
         renderMode()
+
     }
     private fun renderMode() {
         findViewById<TextView>(R.id.titleAuth).text = if(registerMode) "Tạo tài khoản" else "Đăng nhập"
