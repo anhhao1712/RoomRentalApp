@@ -27,6 +27,9 @@ class MainActivity : AppCompatActivity() {
         }
         if (savedInstanceState == null) {
             nav.selectedItemId = R.id.nav_home
+//            startActivity(
+//                Intent(this, MapTilerTestActivity::class.java)
+//            )
         }
     }
     fun title(value: String) { findViewById<com.google.android.material.appbar.MaterialToolbar>(R.id.toolbar).title = value }

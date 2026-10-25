@@ -5,12 +5,12 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <org.osmdroid.views.MapView
+    <org.maplibre.android.maps.MapView
         android:id="@+id/mapView"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-    <!-- Thanh trên -->
+    <!-- Thanh điều khiển trên cùng -->
     <com.google.android.material.card.MaterialCardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -48,14 +48,37 @@
                 android:layout_width="48dp"
                 android:layout_height="48dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="Tải lại"
+                android:contentDescription="Tải lại danh sách phòng"
                 android:src="@android:drawable/ic_popup_sync" />
-
         </LinearLayout>
-
     </com.google.android.material.card.MaterialCardView>
 
-    <!-- Loading -->
+    <!-- Nút zoom -->
+    <LinearLayout
+        android:layout_width="52dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end|center_vertical"
+        android:layout_marginEnd="16dp"
+        android:orientation="vertical">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnZoomIn"
+            android:layout_width="52dp"
+            android:layout_height="52dp"
+            android:text="+"
+            android:textSize="24sp"
+            app:cornerRadius="12dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnZoomOut"
+            android:layout_width="52dp"
+            android:layout_height="52dp"
+            android:layout_marginTop="8dp"
+            android:text="−"
+            android:textSize="24sp"
+            app:cornerRadius="12dp" />
+    </LinearLayout>
+
     <ProgressBar
         android:id="@+id/progress"
         android:layout_width="48dp"
@@ -81,7 +104,6 @@
             android:text="Đang tải phòng..."
             android:textSize="14sp"
             android:textStyle="bold" />
-
     </com.google.android.material.card.MaterialCardView>
 
 </FrameLayout>

@@ -9,7 +9,7 @@ val localConfig = Properties().apply {
     val configFile = rootProject.file("local.properties")
     if (configFile.exists()) configFile.inputStream().use(::load)
 }
-val apiBaseUrl = localConfig.getProperty("API_BASE_URL", "http://192.168.1.3:8080/")
+val apiBaseUrl = localConfig.getProperty("API_BASE_URL", "http://10.0.2.2:8080/")
     .trim()
     .let { if (it.endsWith('/')) it else "$it/" }
 
@@ -31,15 +31,19 @@ android {
         versionCode = 1
         versionName = "1.0"
         // Mỗi máy tự đặt API_BASE_URL trong local.properties; file này không được đưa lên GitHub.
-        buildConfigField("String", "API_BASE_URL", "\"$apiBaseUrl\"")
+        buildConfigField(
+            "String",
+            "API_BASE_URL",
+            "\"$apiBaseUrl\"")
         resValue(
             "string",
             "maptiler_api_key",
             localProps.getProperty("MAPTILER_API_KEY", "")
         )
     }
-    buildFeatures { buildConfig = true; viewBinding = true }
     buildFeatures {
+        buildConfig = true;
+        viewBinding = true;
         resValues = true
     }
 }

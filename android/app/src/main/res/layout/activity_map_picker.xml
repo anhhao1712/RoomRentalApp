@@ -5,11 +5,12 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <org.osmdroid.views.MapView
+    <org.maplibre.android.maps.MapView
         android:id="@+id/mapView"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
+    <!-- Hướng dẫn chọn vị trí -->
     <com.google.android.material.card.MaterialCardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -33,16 +34,41 @@
 
             <TextView
                 android:id="@+id/txtInstruction"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
                 android:text="Chạm lên bản đồ để đặt ghim."
                 android:textSize="14sp" />
-
         </LinearLayout>
-
     </com.google.android.material.card.MaterialCardView>
 
+    <!-- Zoom -->
+    <LinearLayout
+        android:layout_width="52dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end|center_vertical"
+        android:layout_marginEnd="16dp"
+        android:orientation="vertical">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnZoomIn"
+            android:layout_width="52dp"
+            android:layout_height="52dp"
+            android:text="+"
+            android:textSize="24sp"
+            app:cornerRadius="12dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnZoomOut"
+            android:layout_width="52dp"
+            android:layout_height="52dp"
+            android:layout_marginTop="8dp"
+            android:text="−"
+            android:textSize="24sp"
+            app:cornerRadius="12dp" />
+    </LinearLayout>
+
+    <!-- Nút xác nhận -->
     <com.google.android.material.button.MaterialButton
         android:id="@+id/confirm"
         android:layout_width="match_parent"

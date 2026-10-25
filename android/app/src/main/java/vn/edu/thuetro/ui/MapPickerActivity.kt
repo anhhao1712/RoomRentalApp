@@ -1,77 +1,224 @@
+
 package vn.edu.thuetro.ui
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.View
 import android.widget.Button
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import org.osmdroid.config.Configuration
-import org.osmdroid.events.MapEventsReceiver
-import org.osmdroid.tileprovider.tilesource.TileSourceFactory
-import org.osmdroid.util.GeoPoint
-import org.osmdroid.views.MapView
-import org.osmdroid.views.overlay.MapEventsOverlay
-import org.osmdroid.views.overlay.Marker
+import org.maplibre.android.MapLibre
+import org.maplibre.android.annotations.Marker
+import org.maplibre.android.annotations.MarkerOptions
+import org.maplibre.android.camera.CameraPosition
+import org.maplibre.android.camera.CameraUpdateFactory
+import org.maplibre.android.geometry.LatLng
+import org.maplibre.android.maps.MapLibreMap
+import org.maplibre.android.maps.MapView
+import org.maplibre.android.maps.Style
 import vn.edu.thuetro.R
-import vn.edu.thuetro.data.OsmConfig
-import java.io.File
+import java.util.Locale
 
 class MapPickerActivity : AppCompatActivity() {
-    private lateinit var map: MapView
+
+    private lateinit var mapView: MapView
+    private lateinit var instruction: TextView
+
+    private var mapLibreMap: MapLibreMap? = null
     private var marker: Marker? = null
-    private var picked: GeoPoint? = null
+    private var picked: LatLng? = null
+
+    private val defaultPosition = LatLng(
+        10.8231,
+        106.6297
+    )
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        OsmConfig.init(this)
-        setContentView(R.layout.activity_map_picker)
-        map = findViewById(R.id.mapView)
-        map.setTileSource(TileSourceFactory.MAPNIK)
-        map.setMultiTouchControls(true)
-        map.isTilesScaledToDpi = true
-        map.minZoomLevel = 5.0
-        map.maxZoomLevel = 20.0
-        map.overlays.add(MapEventsOverlay(object : MapEventsReceiver {
-            override fun singleTapConfirmedHelper(p: GeoPoint): Boolean { place(p); return true }
-            override fun longPressHelper(p: GeoPoint): Boolean = false
-        }))
 
-        val lat = intent.getDoubleExtra("lat", Double.NaN)
-        val lng = intent.getDoubleExtra("lng", Double.NaN)
-        if (!lat.isNaN() && !lng.isNaN()) {
-            val start = GeoPoint(lat, lng)
-            place(start)
-            map.controller.setZoom(17.0)
-            map.controller.setCenter(start)
-        } else {
-            map.controller.setZoom(13.0)
-            map.controller.setCenter(GeoPoint(10.8231, 106.6297))
+        MapLibre.getInstance(this)
+        setContentView(R.layout.activity_map_picker)
+
+        mapView = findViewById(R.id.mapView)
+        instruction = findViewById(R.id.txtInstruction)
+
+        mapView.onCreate(savedInstanceState)
+
+        findViewById<View>(R.id.btnZoomIn)
+            .setOnClickListener {
+                mapLibreMap?.animateCamera(
+                    CameraUpdateFactory.zoomIn()
+                )
+            }
+
+        findViewById<View>(R.id.btnZoomOut)
+            .setOnClickListener {
+                mapLibreMap?.animateCamera(
+                    CameraUpdateFactory.zoomOut()
+                )
+            }
+
+        findViewById<Button>(R.id.confirm)
+            .setOnClickListener {
+                confirmPosition()
+            }
+
+        setupMap()
+    }
+
+    private fun setupMap() {
+
+        val apiKey = getString(R.string.maptiler_api_key)
+
+        if (apiKey.isBlank()) {
+            Toast.makeText(
+                this,
+                "Chưa cấu hình MapTiler API key",
+                Toast.LENGTH_LONG
+            ).show()
+            return
         }
 
-        findViewById<Button>(R.id.confirm).setOnClickListener {
-            val p = picked
-            if (p == null) {
-                Toast.makeText(this, "Chạm lên bản đồ để chọn vị trí.", Toast.LENGTH_SHORT).show()
-            } else {
-                setResult(RESULT_OK, Intent().putExtra("lat", p.latitude).putExtra("lng", p.longitude))
-                finish()
+        val styleUrl =
+            "https://api.maptiler.com/maps/streets-v4/style.json?key=$apiKey"
+
+        val lat = intent.getDoubleExtra(
+            "lat",
+            Double.NaN
+        )
+
+        val lng = intent.getDoubleExtra(
+            "lng",
+            Double.NaN
+        )
+
+        val hasInitialPosition =
+            lat.isFinite() &&
+                    lng.isFinite() &&
+                    lat in -90.0..90.0 &&
+                    lng in -180.0..180.0
+
+        val startPosition = if (hasInitialPosition) {
+            LatLng(lat, lng)
+        } else {
+            defaultPosition
+        }
+
+        mapView.getMapAsync { map ->
+
+            mapLibreMap = map
+
+            map.setMinZoomPreference(5.0)
+            map.setMaxZoomPreference(20.0)
+
+            map.cameraPosition = CameraPosition.Builder()
+                .target(startPosition)
+                .zoom(if (hasInitialPosition) 17.0 else 13.0)
+                .build()
+
+            map.setStyle(
+                Style.Builder().fromUri(styleUrl)
+            ) {
+
+                if (hasInitialPosition) {
+                    place(startPosition)
+                }
+
+                map.addOnMapClickListener { position ->
+                    place(position)
+                    true
+                }
+
+
+
             }
         }
-        Toast.makeText(this, "Chạm lên bản đồ để đặt vị trí phòng.", Toast.LENGTH_LONG).show()
     }
 
-    private fun place(p: GeoPoint) {
-        picked = p
-        val m = marker ?: Marker(map).also {
-            it.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
-            it.setOnMarkerClickListener { _, _ -> true }   // chạm vào ghim không hiện hộp trống
-            map.overlays.add(it)
-            marker = it
+
+    private fun place(position: LatLng) {
+        val map = mapLibreMap ?: return
+
+        picked = position
+
+        marker?.let { oldMarker ->
+            map.removeMarker(oldMarker)
         }
-        m.position = p
-        map.invalidate()
+
+        marker = map.addMarker(
+            MarkerOptions()
+                .position(position)
+                .title("Vị trí phòng trọ")
+        )
+
+        updateInstruction(position)
     }
 
-    override fun onResume() { super.onResume(); map.onResume() }
-    override fun onPause() { super.onPause(); map.onPause() }
+
+    private fun updateInstruction(position: LatLng) {
+        instruction.text = String.format(
+            Locale.US,
+            "Đã chọn: %.6f, %.6f",
+            position.latitude,
+            position.longitude
+        )
+    }
+
+    private fun confirmPosition() {
+
+        val position = picked
+
+        if (position == null) {
+            Toast.makeText(
+                this,
+                "Chạm lên bản đồ để chọn vị trí.",
+                Toast.LENGTH_SHORT
+            ).show()
+            return
+        }
+
+        val result = Intent().apply {
+            putExtra("lat", position.latitude)
+            putExtra("lng", position.longitude)
+        }
+
+        setResult(RESULT_OK, result)
+        finish()
+    }
+
+    override fun onStart() {
+        super.onStart()
+        mapView.onStart()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        mapView.onResume()
+    }
+
+    override fun onPause() {
+        mapView.onPause()
+        super.onPause()
+    }
+
+    override fun onStop() {
+        mapView.onStop()
+        super.onStop()
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        mapView.onSaveInstanceState(outState)
+        super.onSaveInstanceState(outState)
+    }
+
+    override fun onLowMemory() {
+        super.onLowMemory()
+        mapView.onLowMemory()
+    }
+
+    override fun onDestroy() {
+        mapView.onDestroy()
+        super.onDestroy()
+    }
 }
