@@ -6,6 +6,7 @@ import androidx.fragment.app.Fragment
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import vn.edu.thuetro.R
 import vn.edu.thuetro.data.SessionManager
+import android.content.Intent
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -24,7 +25,9 @@ class MainActivity : AppCompatActivity() {
                 R.id.nav_profile -> show(ProfileFragment())
             }; true
         }
-        if(savedInstanceState == null) nav.selectedItemId = R.id.nav_home
+        if (savedInstanceState == null) {
+            nav.selectedItemId = R.id.nav_home
+        }
     }
     fun title(value: String) { findViewById<com.google.android.material.appbar.MaterialToolbar>(R.id.toolbar).title = value }
     private fun show(fragment: Fragment) { supportFragmentManager.beginTransaction().replace(R.id.fragmentContainer, fragment).commit() }

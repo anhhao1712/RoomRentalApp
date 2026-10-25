@@ -21,7 +21,7 @@ class AuthActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         session = SessionManager(this)
-        if (session.token != null) { openMain(); return }git
+        if (session.token != null) { openMain(); return }
         setContentView(R.layout.activity_auth)
         api = ApiClient.service(this)
         val roleSpinner = findViewById<Spinner>(R.id.roleSpinner)

@@ -1,5 +1,6 @@
 import java.util.Properties
 
+
 plugins {
     alias(libs.plugins.android.application)
 }
@@ -11,6 +12,13 @@ val localConfig = Properties().apply {
 val apiBaseUrl = localConfig.getProperty("API_BASE_URL", "http://192.168.1.3:8080/")
     .trim()
     .let { if (it.endsWith('/')) it else "$it/" }
+
+val localProps = Properties().apply {
+    val file = rootProject.file("local.properties")
+    if (file.exists()) {
+        file.inputStream().use { load(it) }
+    }
+}
 
 android {
     namespace = "vn.edu.thuetro"
@@ -24,8 +32,16 @@ android {
         versionName = "1.0"
         // Mỗi máy tự đặt API_BASE_URL trong local.properties; file này không được đưa lên GitHub.
         buildConfigField("String", "API_BASE_URL", "\"$apiBaseUrl\"")
+        resValue(
+            "string",
+            "maptiler_api_key",
+            localProps.getProperty("MAPTILER_API_KEY", "")
+        )
     }
     buildFeatures { buildConfig = true; viewBinding = true }
+    buildFeatures {
+        resValues = true
+    }
 }
 
 dependencies {
@@ -41,4 +57,5 @@ dependencies {
     implementation(libs.okhttp.logging)
     implementation(libs.coil)
     implementation(libs.osmdroid)
+    implementation("org.maplibre.gl:android-sdk:11.11.0")
 }
