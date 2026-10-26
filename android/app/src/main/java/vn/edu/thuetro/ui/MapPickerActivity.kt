@@ -39,9 +39,11 @@ class MapPickerActivity : AppCompatActivity() {
 
         MapLibre.getInstance(this)
         setContentView(R.layout.activity_map_picker)
+        applySafeArea()
 
         mapView = findViewById(R.id.mapView)
         instruction = findViewById(R.id.txtInstruction)
+        findViewById<View>(R.id.btnPickerBack).setOnClickListener { finish() }
 
         mapView.onCreate(savedInstanceState)
 

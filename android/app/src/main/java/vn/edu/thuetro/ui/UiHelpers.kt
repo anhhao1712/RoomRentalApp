@@ -39,3 +39,25 @@ fun Context.toast(message: String) {
     }
 }
 fun Context.confirm(title: String, message: String, onYes: () -> Unit) { AlertDialog.Builder(this).setTitle(title).setMessage(message).setNegativeButton("Hủy", null).setPositiveButton("Đồng ý") { _, _ -> onYes() }.show() }
+
+/** Keep interactive content clear of system bars, cutouts and the keyboard. */
+fun android.app.Activity.applySafeArea() {
+    androidx.core.view.WindowCompat.setDecorFitsSystemWindows(window, false)
+    val content = findViewById<android.view.ViewGroup>(android.R.id.content)
+    val root = content.getChildAt(0) ?: return
+    val left = root.paddingLeft
+    val top = root.paddingTop
+    val right = root.paddingRight
+    val bottom = root.paddingBottom
+    androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(root) { view, insets ->
+        val safe = insets.getInsets(
+            androidx.core.view.WindowInsetsCompat.Type.systemBars() or
+                androidx.core.view.WindowInsetsCompat.Type.displayCutout()
+        )
+        val keyboard = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.ime())
+        view.setPadding(left + safe.left, top + safe.top, right + safe.right, bottom + maxOf(safe.bottom, keyboard.bottom))
+        // The root owns these insets; children must not apply the same spacing again.
+        androidx.core.view.WindowInsetsCompat.CONSUMED
+    }
+    androidx.core.view.ViewCompat.requestApplyInsets(root)
+}

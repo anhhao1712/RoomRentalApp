@@ -1,19 +1,40 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="match_parent" android:background="@color/background">
     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnDetailBack"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginStart="8dp"
+            android:text="←" android:contentDescription="Quay lại" android:textSize="28sp" android:minWidth="0dp" android:padding="0dp" android:gravity="center" />
         <ImageView android:id="@+id/roomImage" android:layout_width="match_parent" android:layout_height="240dp" android:background="#E2E8F0" android:scaleType="centerCrop"/>
         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="20dp">
             <TextView android:id="@+id/status" android:layout_width="wrap_content" android:layout_height="wrap_content" android:background="@drawable/bg_status" android:textColor="@color/success"/>
-            <TextView android:id="@+id/title" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:textColor="@color/text_primary" android:textSize="23sp" android:textStyle="bold"/>
-            <TextView android:id="@+id/price" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:textColor="@color/primary" android:textSize="22sp" android:textStyle="bold"/>
+            <TextView android:id="@+id/title" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:textColor="@color/text_primary" android:textSize="20sp" android:textStyle="bold"/>
+            <TextView android:id="@+id/price" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:textColor="@color/primary" android:textSize="20sp" android:textStyle="bold"/>
             <TextView android:id="@+id/address" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:textColor="@color/text_secondary"/>
             <TextView android:id="@+id/meta" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:textColor="@color/text_primary"/>
             <TextView android:id="@+id/description" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="20dp" android:textColor="@color/text_primary" android:textSize="16sp"/>
             <TextView android:id="@+id/amenities" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="16dp" android:textColor="@color/text_secondary"/>
             <TextView android:id="@+id/fees" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="16dp" android:textColor="@color/text_secondary"/>
             <TextView android:id="@+id/owner" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="20dp" android:textColor="@color/text_primary" android:textStyle="bold"/>
-            <TextView android:id="@+id/roleHint" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:text="Bạn đang xem với vai trò chủ trọ. Chỉnh sửa tin đăng trong mục Quản lý." android:textColor="@color/text_secondary" android:visibility="gone" />
-            <com.google.android.material.button.MaterialButton android:id="@+id/favoriteButton" android:layout_width="match_parent" android:layout_height="52dp" android:layout_marginTop="24dp" android:text="Lưu phòng"/>
-            <com.google.android.material.button.MaterialButton android:id="@+id/requestButton" android:layout_width="match_parent" android:layout_height="52dp" android:layout_marginTop="8dp" android:text="Gửi yêu cầu thuê / xem phòng" android:backgroundTint="@color/primary"/>
+            <TextView android:id="@+id/roleHint" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:text="Bạn đang xem với vai trò chủ trọ. Chỉnh sửa tin đăng trong mục Quản lý." android:textColor="@color/text_secondary" android:visibility="gone"/>
+            <com.google.android.material.button.MaterialButton android:id="@+id/btnViewLocation" android:layout_width="match_parent" android:layout_height="52dp" android:layout_marginTop="20dp" android:text="Xem vị trí trên bản đồ"/>
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/favoriteButton"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:layout_marginTop="24dp"
+                android:text="Lưu phòng"
+                android:visibility="gone" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/requestButton"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:layout_marginTop="8dp"
+                android:text="Gửi yêu cầu thuê / xem phòng"
+                android:backgroundTint="@color/primary"
+                android:visibility="gone" />
         </LinearLayout>
     </LinearLayout>
 </ScrollView>

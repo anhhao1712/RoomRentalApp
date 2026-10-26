@@ -36,6 +36,7 @@ class MapActivity : AppCompatActivity() {
     private val markerRoomIds = mutableMapOf<Long, Long>()
 
     private var pendingRooms: List<Room>? = null
+    private val focusedRoomId: Long by lazy { intent.getLongExtra("room_id", -1L) }
 
     private val defaultPosition = LatLng(
         10.8231,
@@ -47,6 +48,7 @@ class MapActivity : AppCompatActivity() {
 
         MapLibre.getInstance(this)
         setContentView(R.layout.activity_map)
+        applySafeArea()
 
         mapView = findViewById(R.id.mapView)
         progress = findViewById(R.id.progress)
@@ -151,7 +153,7 @@ class MapActivity : AppCompatActivity() {
 
         lifecycleScope.launch {
             try {
-                val rooms = ApiClient
+                val allRooms = ApiClient
                     .service(this@MapActivity)
                     .rooms()
                     .data
@@ -167,6 +169,12 @@ class MapActivity : AppCompatActivity() {
                                 lat in -90.0..90.0 &&
                                 lng in -180.0..180.0
                     }
+
+                val rooms = if (focusedRoomId > 0L) {
+                    allRooms.filter { it.id == focusedRoomId }
+                } else {
+                    allRooms
+                }
 
                 val map = mapLibreMap
 

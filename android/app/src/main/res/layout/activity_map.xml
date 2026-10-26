@@ -32,7 +32,7 @@
                 android:layout_height="48dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="Quay lại"
-                android:src="@android:drawable/ic_media_previous" />
+                android:src="@drawable/ic_arrow_back" />
 
             <TextView
                 android:id="@+id/txtTitle"
@@ -66,7 +66,7 @@
             android:layout_width="52dp"
             android:layout_height="52dp"
             android:text="+"
-            android:textSize="24sp"
+            android:textSize="28sp" android:textStyle="bold" android:minWidth="0dp" android:minHeight="0dp" android:padding="0dp" android:insetTop="0dp" android:insetBottom="0dp" android:gravity="center" android:contentDescription="Phóng to"
             app:cornerRadius="12dp" />
 
         <com.google.android.material.button.MaterialButton
@@ -75,7 +75,7 @@
             android:layout_height="52dp"
             android:layout_marginTop="8dp"
             android:text="−"
-            android:textSize="24sp"
+            android:textSize="28sp" android:textStyle="bold" android:minWidth="0dp" android:minHeight="0dp" android:padding="0dp" android:insetTop="0dp" android:insetBottom="0dp" android:gravity="center" android:contentDescription="Thu nhỏ"
             app:cornerRadius="12dp" />
     </LinearLayout>
 

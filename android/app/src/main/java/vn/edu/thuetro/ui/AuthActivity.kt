@@ -14,10 +14,6 @@ import android.widget.*
 import org.json.JSONObject
 import retrofit2.HttpException
 import android.util.Log
-import vn.edu.thuetro.BuildConfig
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import java.util.concurrent.TimeUnit
 
 class AuthActivity : AppCompatActivity() {
     private var registerMode = false
@@ -25,13 +21,10 @@ class AuthActivity : AppCompatActivity() {
     private lateinit var session: SessionManager
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        Log.e(
-            "AUTH_DEBUG",
-            "API URL: ${BuildConfig.API_BASE_URL}"
-        )
         session = SessionManager(this)
         if (session.token != null) { openMain(); return }
         setContentView(R.layout.activity_auth)
+        applySafeArea()
         api = ApiClient.service(this)
         val roleSpinner = findViewById<Spinner>(R.id.roleSpinner)
         roleSpinner.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, listOf("Người thuê", "Chủ trọ"))
@@ -42,7 +35,6 @@ class AuthActivity : AppCompatActivity() {
         findViewById<TextView>(R.id.buttonToggle).setOnClickListener { registerMode = !registerMode; renderMode() }
         findViewById<Button>(R.id.buttonSubmit).setOnClickListener { submit() }
         renderMode()
-        testApiConnection()
     }
     private fun renderMode() {
         findViewById<TextView>(R.id.titleAuth).text = if(registerMode) "Tạo tài khoản" else "Đăng nhập"
@@ -84,34 +76,4 @@ class AuthActivity : AppCompatActivity() {
         }
     }
     private fun openMain() { startActivity(Intent(this, MainActivity::class.java)); finish() }
-
-    private fun testApiConnection() {
-        Thread {
-            val client = OkHttpClient.Builder()
-                .proxy(java.net.Proxy.NO_PROXY)
-                .connectTimeout(10, TimeUnit.SECONDS)
-                .readTimeout(10, TimeUnit.SECONDS)
-                .build()
-
-            val request = Request.Builder()
-                .url("http://10.0.2.2:8080/api/rooms")
-                .get()
-                .build()
-
-            try {
-                client.newCall(request).execute().use { response ->
-                    Log.e(
-                        "API_NETWORK_TEST",
-                        "HTTP ${response.code}: ${response.body?.string()}"
-                    )
-                }
-            } catch (e: Exception) {
-                Log.e(
-                    "API_NETWORK_TEST",
-                    "Không kết nối được backend",
-                    e
-                )
-            }
-        }.start()
-    }
 }

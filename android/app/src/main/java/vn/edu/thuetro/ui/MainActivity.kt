@@ -6,12 +6,12 @@ import androidx.fragment.app.Fragment
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import vn.edu.thuetro.R
 import vn.edu.thuetro.data.SessionManager
-import android.content.Intent
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        applySafeArea()
         val nav = findViewById<BottomNavigationView>(R.id.bottomNav)
         val role = SessionManager(this).role
         // Người thuê không cần thấy mục quản lý tin đăng; chủ trọ và quản trị viên vẫn có đủ chức năng.
@@ -27,9 +27,6 @@ class MainActivity : AppCompatActivity() {
         }
         if (savedInstanceState == null) {
             nav.selectedItemId = R.id.nav_home
-//            startActivity(
-//                Intent(this, MapTilerTestActivity::class.java)
-//            )
         }
     }
     fun title(value: String) { findViewById<com.google.android.material.appbar.MaterialToolbar>(R.id.toolbar).title = value }

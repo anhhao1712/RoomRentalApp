@@ -6,7 +6,9 @@ const jwt = require('jsonwebtoken');
 const multer = require('multer');
 const { db, admin } = require('./firebase');
 const { uploadImageBuffer } = require('./cloudinary');
-const { AMENITIES, ROOM_STATUSES, REQUEST_STATUSES, AREAS } = require('./constants');
+const { AMENITIES, ROOM_STATUSES, AREAS } = require('./constants');
+const { roomPayload } = require('./room-payload');
+const { createAuth } = require('./auth');
 
 const app = express();
 const port = Number(process.env.PORT || 8080);
@@ -24,12 +26,7 @@ const normalizeUsername = (username) => String(username || '').trim().toLowerCas
 function signToken(user) {
   return jwt.sign({ id: user.id, role: user.role, username: user.username }, jwtSecret, { expiresIn: '7d' });
 }
-function auth(req, res, next) {
-  const token = req.headers.authorization?.replace(/^Bearer\s+/i, '');
-  if (!token) return fail(res, 'Bạn cần đăng nhập.', 401);
-  try { req.user = jwt.verify(token, jwtSecret); return next(); }
-  catch { return fail(res, 'Phiên đăng nhập đã hết hạn.', 401); }
-}
+const auth = createAuth({ verifyToken: (token) => jwt.verify(token, jwtSecret), getUser, fail });
 function requireRole(...roles) {
   return (req, res, next) => roles.includes(req.user.role) ? next() : fail(res, 'Bạn không có quyền thực hiện chức năng này.', 403);
 }
@@ -52,38 +49,12 @@ async function roomDto(room, viewerId = null) {
     id: room.id, landlordId: room.ownerId, landlordName: owner?.fullName || 'Chủ trọ', landlordPhone: owner?.phone || null,
     title: room.title, description: room.description || null, address: room.address, ward: room.ward || null,
     district: room.district || null, city: room.city || 'Hồ Chí Minh', price: room.price, area: room.area,
-    maxTenants: room.maxTenants || 2, deposit: room.deposit || 0, electricityPrice: room.electricityPrice || 3500,
-    waterPrice: room.waterPrice || 15000, internetFee: room.internetFee || 0, status: room.status,
+    maxTenants: room.maxTenants || 2, deposit: room.deposit || 0, electricityPrice: room.electricityPrice ?? 3500,
+    waterPrice: room.waterPrice ?? 15000, internetFee: room.internetFee || 0, status: room.status,
     images: room.images || [], amenities: AMENITIES.filter((item) => (room.amenityIds || []).includes(item.id)),
     isFavorite, createdAt: room.createdAt || null,
     latitude: typeof room.latitude === 'number' ? room.latitude : null,
     longitude: typeof room.longitude === 'number' ? room.longitude : null
-  };
-}
-function parseCoordinates(body) {
-  const { latitude, longitude } = body;
-  if (latitude == null && longitude == null) return {};
-  if (typeof latitude !== 'number' || typeof longitude !== 'number' || !Number.isFinite(latitude) || !Number.isFinite(longitude)) {
-      throw new Error('Tọa độ phải gồm cả vĩ độ và kinh độ dạng số.');
-  }
-  if (Math.abs(latitude) > 90 || Math.abs(longitude) > 180) throw new Error('Tọa độ không hợp lệ.');
-  return { latitude, longitude };
-}
-
-function roomPayload(body, ownerId) {
-  if (!body.title?.trim() || !body.address?.trim() || !Number(body.price) || !Number(body.area)) throw new Error('Nhập đủ tiêu đề, địa chỉ, giá và diện tích.');
-  const selectedArea = AREAS.find((item) => item.district === body.district);
-  if (!selectedArea) throw new Error('Vui lòng chọn khu vực hợp lệ trong danh sách.');
-  return {
-    ownerId, title: body.title.trim(), description: body.description || null, address: body.address.trim(), ward: body.ward || null,
-    district: selectedArea.district, city: selectedArea.city, price: Number(body.price), area: Number(body.area),
-    maxTenants: Number(body.maxTenants) || 2, deposit: Number(body.deposit) || 0, electricityPrice: Number(body.electricityPrice) || 3500,
-    waterPrice: Number(body.waterPrice) || 15000, internetFee: Number(body.internetFee) || 0,
-    status: ROOM_STATUSES.includes(body.status) ? body.status : 'AVAILABLE',
-    images: Array.isArray(body.imageUrls) ? body.imageUrls.filter(Boolean).slice(0, 8) : [],
-    amenityIds: Array.isArray(body.amenityIds) ? body.amenityIds.map(Number).filter((id) => AMENITIES.some((item) => item.id === id)) : [],
-    ...parseCoordinates(body),
-    updatedAt: now()
   };
 }
 async function roomById(id) {
@@ -104,7 +75,7 @@ app.post('/api/auth/login', async (req, res) => {
 app.post('/api/auth/register', async (req, res) => {
   try {
     const username = normalizeUsername(req.body.username);
-    if (username.length < 4 || String(req.body.password || '').length < 3 || !req.body.fullName?.trim()) return fail(res, 'Tên đăng nhập tối thiểu 4 ký tự, mật khẩu tối thiểu 3 ký tự.');
+    if (!/^[a-z0-9_.-]{4,64}$/.test(username) || String(req.body.password || '').length < 3 || !req.body.fullName?.trim()) return fail(res, 'Tên đăng nhập gồm 4–64 ký tự chữ không dấu, số, dấu chấm, gạch dưới hoặc gạch ngang; mật khẩu tối thiểu 3 ký tự.');
     const usernameRef = db.collection('usernames').doc(username);
     const existing = await usernameRef.get();
     if (existing.exists) return fail(res, 'Tên đăng nhập đã tồn tại.', 409);
@@ -112,7 +83,13 @@ app.post('/api/auth/register', async (req, res) => {
     const isLandlord = req.body.role === 'LANDLORD';
     if (isLandlord && req.body.acceptedTerms !== true) return fail(res, 'Bạn cần đồng ý điều khoản trước khi đăng ký Chủ trọ.');
     const user = { id, username, passwordHash: await bcrypt.hash(String(req.body.password), 10), fullName: req.body.fullName.trim(), phone: req.body.phone || null, email: req.body.email || null, role: isLandlord ? 'LANDLORD' : 'TENANT', acceptedLandlordTerms: isLandlord, avatarUrl: null, createdAt: now(), updatedAt: now() };
-    const batch = db.batch(); batch.set(db.collection('users').doc(String(id)), user); batch.set(usernameRef, { userId: id }); await batch.commit();
+    const created = await db.runTransaction(async (transaction) => {
+      if ((await transaction.get(usernameRef)).exists) return false;
+      transaction.create(db.collection('users').doc(String(id)), user);
+      transaction.create(usernameRef, { userId: id });
+      return true;
+    });
+    if (!created) return fail(res, 'Tên đăng nhập đã tồn tại.', 409);
     return ok(res, 'Tạo tài khoản thành công.', { token: signToken(user), user: publicUser(user) }, 201);
   } catch (error) { return fail(res, error.message, 500); }
 });

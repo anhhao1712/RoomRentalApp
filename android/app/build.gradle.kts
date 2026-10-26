@@ -60,6 +60,5 @@ dependencies {
     implementation(libs.retrofit.gson)
     implementation(libs.okhttp.logging)
     implementation(libs.coil)
-    implementation(libs.osmdroid)
     implementation("org.maplibre.gl:android-sdk:11.11.0")
 }

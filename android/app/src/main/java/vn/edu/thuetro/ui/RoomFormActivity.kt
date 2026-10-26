@@ -1,5 +1,10 @@
 package vn.edu.thuetro.ui
 
+import android.util.Log
+import java.io.IOException
+import kotlinx.coroutines.CancellationException
+import org.json.JSONObject
+import retrofit2.HttpException
 import android.net.Uri
 import android.os.Bundle
 import android.view.View
@@ -38,6 +43,8 @@ class RoomFormActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_room_form)
+        applySafeArea()
+        findViewById<View>(R.id.btnFormBack).setOnClickListener { finish() }
         api = ApiClient.service(this)
         findViewById<Spinner>(R.id.status).adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, statusLabels)
         findViewById<Spinner>(R.id.areaSpinner).adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, AreaCatalog.options.map { it.label })
@@ -151,11 +158,37 @@ class RoomFormActivity : AppCompatActivity() {
             statusCodes[findViewById<Spinner>(R.id.status).selectedItemPosition],
             value(R.id.images).lines().map { it.trim() }.filter { it.isNotBlank() }, amenityIds, latitude, longitude
         )
+        val saveButton = findViewById<Button>(R.id.save)
+        if (!saveButton.isEnabled) return
+        saveButton.isEnabled = false
         lifecycleScope.launch {
             try {
                 val result = if (roomId > 0) api.updateRoom(roomId, body) else api.createRoom(body)
-                toast(result.message); if (result.success) finish()
-            } catch (_: Exception) { toast("Không lưu được phòng.") }
+                toast(result.message.ifBlank { if (result.success) "Đã lưu tin đăng." else "Không lưu được phòng." })
+                if (result.success) finish()
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: HttpException) {
+                val message = runCatching {
+                    JSONObject(e.response()?.errorBody()?.string().orEmpty()).optString("message")
+                }.getOrDefault("")
+                Log.w("RoomForm", "Save rejected: HTTP "+e.code())
+                toast(message.ifBlank {
+                    when (e.code()) {
+                        401 -> "Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại."
+                        403 -> "Tài khoản chưa có quyền đăng phòng. Vui lòng kiểm tra vai trò Chủ trọ."
+                        else -> "Không lưu được phòng (HTTP "+e.code()+"). Vui lòng thử lại."
+                    }
+                })
+            } catch (e: IOException) {
+                Log.e("RoomForm", "Save connection or response failure", e)
+                toast("Không nhận được phản hồi hợp lệ. Kiểm tra kết nối và danh sách tin trước khi lưu lại.")
+            } catch (e: Exception) {
+                Log.e("RoomForm", "Save failed", e)
+                toast("Không xử lý được kết quả lưu. Kiểm tra danh sách tin trước khi thử lại.")
+            } finally {
+                saveButton.isEnabled = true
+            }
         }
     }
 
