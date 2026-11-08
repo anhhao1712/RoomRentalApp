@@ -13,6 +13,7 @@ import vn.edu.thuetro.data.*
 import android.widget.*
 import org.json.JSONObject
 import retrofit2.HttpException
+import android.util.Log
 
 class AuthActivity : AppCompatActivity() {
     private var registerMode = false
@@ -23,6 +24,7 @@ class AuthActivity : AppCompatActivity() {
         session = SessionManager(this)
         if (session.token != null) { openMain(); return }
         setContentView(R.layout.activity_auth)
+        applySafeArea()
         api = ApiClient.service(this)
         val roleSpinner = findViewById<Spinner>(R.id.roleSpinner)
         roleSpinner.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, listOf("Người thuê", "Chủ trọ"))
@@ -67,7 +69,10 @@ class AuthActivity : AppCompatActivity() {
             } catch (e: HttpException) {
                 val message = runCatching { JSONObject(e.response()?.errorBody()?.string().orEmpty()).optString("message") }.getOrDefault("")
                 toast(message.ifBlank { "Không thể tạo tài khoản. Vui lòng kiểm tra lại thông tin." })
-            } catch (e: Exception) { toast("Không kết nối được server. Kiểm tra Node.js API đang chạy và địa chỉ API.") }
+            } catch (e: Exception) {
+                Log.e("AUTH_DEBUG", "Đăng ký thất bại", e)
+                toast("Không kết nối được server. Kiểm tra Node.js API đang chạy và địa chỉ API.")
+            }
         }
     }
     private fun openMain() { startActivity(Intent(this, MainActivity::class.java)); finish() }

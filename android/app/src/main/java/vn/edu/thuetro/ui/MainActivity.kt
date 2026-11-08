@@ -11,6 +11,7 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        applySafeArea()
         val nav = findViewById<BottomNavigationView>(R.id.bottomNav)
         val role = SessionManager(this).role
         // Người thuê không cần thấy mục quản lý tin đăng; chủ trọ và quản trị viên vẫn có đủ chức năng.
@@ -24,7 +25,9 @@ class MainActivity : AppCompatActivity() {
                 R.id.nav_profile -> show(ProfileFragment())
             }; true
         }
-        if(savedInstanceState == null) nav.selectedItemId = R.id.nav_home
+        if (savedInstanceState == null) {
+            nav.selectedItemId = R.id.nav_home
+        }
     }
     fun title(value: String) { findViewById<com.google.android.material.appbar.MaterialToolbar>(R.id.toolbar).title = value }
     private fun show(fragment: Fragment) { supportFragmentManager.beginTransaction().replace(R.id.fragmentContainer, fragment).commit() }

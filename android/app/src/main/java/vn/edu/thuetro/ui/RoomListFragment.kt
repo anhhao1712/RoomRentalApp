@@ -21,6 +21,7 @@ class RoomListFragment : Fragment(R.layout.fragment_room_list) {
         view.findViewById<androidx.recyclerview.widget.RecyclerView>(R.id.roomRecycler).apply { layoutManager = LinearLayoutManager(requireContext()); adapter = this@RoomListFragment.adapter }
         view.findViewById<EditText>(R.id.inputSearch).setOnEditorActionListener { _, _, _ -> load(); true }
         view.findViewById<ImageButton>(R.id.buttonFilter).setOnClickListener { filterDialog() }
+        view.findViewById<ImageButton>(R.id.buttonMap).setOnClickListener { startActivity(Intent(requireContext(), MapActivity::class.java)) }
         load()
     }
     override fun onResume() { super.onResume(); if(view != null) load() }

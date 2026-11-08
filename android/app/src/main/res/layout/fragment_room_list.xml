@@ -2,6 +2,7 @@
     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
         <EditText android:id="@+id/inputSearch" android:layout_width="0dp" android:layout_height="48dp" android:layout_weight="1" android:background="@drawable/bg_card" android:hint="Tìm khu vực, tên phòng..." android:paddingHorizontal="14dp" android:singleLine="true"/>
         <ImageButton android:id="@+id/buttonFilter" android:layout_width="48dp" android:layout_height="48dp" android:layout_marginStart="8dp" android:background="@drawable/bg_card" android:contentDescription="Lọc" android:src="@android:drawable/ic_menu_sort_by_size"/>
+        <ImageButton android:id="@+id/buttonMap" android:layout_width="48dp" android:layout_height="48dp" android:layout_marginStart="8dp" android:background="@drawable/bg_card" android:contentDescription="Bản đồ" android:src="@android:drawable/ic_menu_mapmode"/>
     </LinearLayout>
     <TextView android:id="@+id/roomCount" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="14dp" android:textColor="@color/text_secondary"/>
     <ProgressBar android:id="@+id/progress" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="center" android:layout_marginTop="20dp"/>

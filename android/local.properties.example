@@ -1,3 +1,0 @@
-# Sao chép API_BASE_URL này vào android/local.properties trên máy của bạn.
-# Thay IP bằng IPv4 Wi-Fi của máy đang chạy Node.js, ví dụ lấy từ lệnh ipconfig.
-API_BASE_URL=http://YOUR_PC_IPV4:8080/

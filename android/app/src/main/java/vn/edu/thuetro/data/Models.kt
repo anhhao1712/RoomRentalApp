@@ -11,12 +11,14 @@ data class Room(
     val id: Long, val landlordId: Long, val landlordName: String, val landlordPhone: String?,
     val title: String, val description: String?, val address: String, val ward: String?, val district: String?, val city: String,
     val price: Long, val area: Double, val maxTenants: Int, val deposit: Long, val electricityPrice: Long, val waterPrice: Long, val internetFee: Long,
-    val status: String, val images: List<String>, val amenities: List<Amenity>, val isFavorite: Boolean, val createdAt: String?
+    val status: String, val images: List<String>, val amenities: List<Amenity>, val isFavorite: Boolean, val createdAt: String?,
+    val latitude: Double? = null, val longitude: Double? = null
 )
 data class RoomUpsertRequest(
     val title: String, val description: String?, val address: String, val ward: String?, val district: String?, val city: String,
     val price: Long, val area: Double, val maxTenants: Int, val deposit: Long, val electricityPrice: Long, val waterPrice: Long, val internetFee: Long,
-    val status: String, val imageUrls: List<String>, val amenityIds: List<Long>
+    val status: String, val imageUrls: List<String>, val amenityIds: List<Long>,
+    val latitude: Double? = null, val longitude: Double? = null
 )
 data class RentalRequestCreate(val message: String?, val viewingTime: String?, val phone: String)
 data class RentalRequest(val id: Long, val roomId: Long, val roomTitle: String, val tenantId: Long, val tenantName: String, val tenantPhone: String?, val message: String?, val viewingTime: String?, val status: String, val ownerNote: String?, val createdAt: String)

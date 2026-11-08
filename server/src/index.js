@@ -3,12 +3,17 @@ const express = require('express');
 const cors = require('cors');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const multer = require('multer');
 const { db, admin } = require('./firebase');
-const { AMENITIES, ROOM_STATUSES, REQUEST_STATUSES, AREAS } = require('./constants');
+const { uploadImageBuffer } = require('./cloudinary');
+const { AMENITIES, ROOM_STATUSES, AREAS } = require('./constants');
+const { roomPayload } = require('./room-payload');
+const { createAuth } = require('./auth');
 
 const app = express();
 const port = Number(process.env.PORT || 8080);
 const jwtSecret = process.env.JWT_SECRET || 'chi-dung-cho-phat-trien-local';
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } });
 app.use(cors());
 app.use(express.json({ limit: '1mb' }));
 
@@ -21,12 +26,7 @@ const normalizeUsername = (username) => String(username || '').trim().toLowerCas
 function signToken(user) {
   return jwt.sign({ id: user.id, role: user.role, username: user.username }, jwtSecret, { expiresIn: '7d' });
 }
-function auth(req, res, next) {
-  const token = req.headers.authorization?.replace(/^Bearer\s+/i, '');
-  if (!token) return fail(res, 'Bạn cần đăng nhập.', 401);
-  try { req.user = jwt.verify(token, jwtSecret); return next(); }
-  catch { return fail(res, 'Phiên đăng nhập đã hết hạn.', 401); }
-}
+const auth = createAuth({ verifyToken: (token) => jwt.verify(token, jwtSecret), getUser, fail });
 function requireRole(...roles) {
   return (req, res, next) => roles.includes(req.user.role) ? next() : fail(res, 'Bạn không có quyền thực hiện chức năng này.', 403);
 }
@@ -49,25 +49,12 @@ async function roomDto(room, viewerId = null) {
     id: room.id, landlordId: room.ownerId, landlordName: owner?.fullName || 'Chủ trọ', landlordPhone: owner?.phone || null,
     title: room.title, description: room.description || null, address: room.address, ward: room.ward || null,
     district: room.district || null, city: room.city || 'Hồ Chí Minh', price: room.price, area: room.area,
-    maxTenants: room.maxTenants || 2, deposit: room.deposit || 0, electricityPrice: room.electricityPrice || 3500,
-    waterPrice: room.waterPrice || 15000, internetFee: room.internetFee || 0, status: room.status,
+    maxTenants: room.maxTenants || 2, deposit: room.deposit || 0, electricityPrice: room.electricityPrice ?? 3500,
+    waterPrice: room.waterPrice ?? 15000, internetFee: room.internetFee || 0, status: room.status,
     images: room.images || [], amenities: AMENITIES.filter((item) => (room.amenityIds || []).includes(item.id)),
-    isFavorite, createdAt: room.createdAt || null
-  };
-}
-function roomPayload(body, ownerId) {
-  if (!body.title?.trim() || !body.address?.trim() || !Number(body.price) || !Number(body.area)) throw new Error('Nhập đủ tiêu đề, địa chỉ, giá và diện tích.');
-  const selectedArea = AREAS.find((item) => item.district === body.district);
-  if (!selectedArea) throw new Error('Vui lòng chọn khu vực hợp lệ trong danh sách.');
-  return {
-    ownerId, title: body.title.trim(), description: body.description || null, address: body.address.trim(), ward: body.ward || null,
-    district: selectedArea.district, city: selectedArea.city, price: Number(body.price), area: Number(body.area),
-    maxTenants: Number(body.maxTenants) || 2, deposit: Number(body.deposit) || 0, electricityPrice: Number(body.electricityPrice) || 3500,
-    waterPrice: Number(body.waterPrice) || 15000, internetFee: Number(body.internetFee) || 0,
-    status: ROOM_STATUSES.includes(body.status) ? body.status : 'AVAILABLE',
-    images: Array.isArray(body.imageUrls) ? body.imageUrls.filter(Boolean).slice(0, 8) : [],
-    amenityIds: Array.isArray(body.amenityIds) ? body.amenityIds.map(Number).filter((id) => AMENITIES.some((item) => item.id === id)) : [],
-    updatedAt: now()
+    isFavorite, createdAt: room.createdAt || null,
+    latitude: typeof room.latitude === 'number' ? room.latitude : null,
+    longitude: typeof room.longitude === 'number' ? room.longitude : null
   };
 }
 async function roomById(id) {
@@ -88,7 +75,7 @@ app.post('/api/auth/login', async (req, res) => {
 app.post('/api/auth/register', async (req, res) => {
   try {
     const username = normalizeUsername(req.body.username);
-    if (username.length < 4 || String(req.body.password || '').length < 3 || !req.body.fullName?.trim()) return fail(res, 'Tên đăng nhập tối thiểu 4 ký tự, mật khẩu tối thiểu 3 ký tự.');
+    if (!/^[a-z0-9_.-]{4,64}$/.test(username) || String(req.body.password || '').length < 3 || !req.body.fullName?.trim()) return fail(res, 'Tên đăng nhập gồm 4–64 ký tự chữ không dấu, số, dấu chấm, gạch dưới hoặc gạch ngang; mật khẩu tối thiểu 3 ký tự.');
     const usernameRef = db.collection('usernames').doc(username);
     const existing = await usernameRef.get();
     if (existing.exists) return fail(res, 'Tên đăng nhập đã tồn tại.', 409);
@@ -96,7 +83,13 @@ app.post('/api/auth/register', async (req, res) => {
     const isLandlord = req.body.role === 'LANDLORD';
     if (isLandlord && req.body.acceptedTerms !== true) return fail(res, 'Bạn cần đồng ý điều khoản trước khi đăng ký Chủ trọ.');
     const user = { id, username, passwordHash: await bcrypt.hash(String(req.body.password), 10), fullName: req.body.fullName.trim(), phone: req.body.phone || null, email: req.body.email || null, role: isLandlord ? 'LANDLORD' : 'TENANT', acceptedLandlordTerms: isLandlord, avatarUrl: null, createdAt: now(), updatedAt: now() };
-    const batch = db.batch(); batch.set(db.collection('users').doc(String(id)), user); batch.set(usernameRef, { userId: id }); await batch.commit();
+    const created = await db.runTransaction(async (transaction) => {
+      if ((await transaction.get(usernameRef)).exists) return false;
+      transaction.create(db.collection('users').doc(String(id)), user);
+      transaction.create(usernameRef, { userId: id });
+      return true;
+    });
+    if (!created) return fail(res, 'Tên đăng nhập đã tồn tại.', 409);
     return ok(res, 'Tạo tài khoản thành công.', { token: signToken(user), user: publicUser(user) }, 201);
   } catch (error) { return fail(res, error.message, 500); }
 });
@@ -127,6 +120,14 @@ app.post('/api/rooms/:id/requests', requireRole('TENANT', 'ADMIN'), async (req, 
 app.get('/api/requests', async (req, res) => { try { let data = (await db.collection('rentalRequests').get()).docs.map((doc) => doc.data()); if (req.user.role === 'LANDLORD') data = data.filter((item) => item.ownerId === req.user.id); if (req.user.role === 'TENANT') data = data.filter((item) => item.tenantId === req.user.id); const result = await Promise.all(data.sort((a,b)=>String(b.createdAt).localeCompare(String(a.createdAt))).map(async (item) => { const [room, tenant] = await Promise.all([roomById(item.roomId), getUser(item.tenantId)]); return { id: item.id, roomId: item.roomId, roomTitle: room?.title || 'Phòng đã xóa', tenantId: item.tenantId, tenantName: tenant?.fullName || 'Người dùng', tenantPhone: item.contactPhone || tenant?.phone || null, message: item.message, viewingTime: item.viewingTime, status: item.status, ownerNote: item.ownerNote, createdAt: item.createdAt }; })); return ok(res, '', result); } catch (error) { return fail(res, error.message, 500); } });
 app.patch('/api/requests/:id', requireRole('LANDLORD', 'ADMIN'), async (req, res) => { try { const ref = db.collection('rentalRequests').doc(String(req.params.id)); const snap = await ref.get(); if (!snap.exists) return fail(res, 'Không tìm thấy yêu cầu.', 404); const item = snap.data(); if (req.user.role !== 'ADMIN' && item.ownerId !== req.user.id) return fail(res, 'Bạn không có quyền xử lý yêu cầu.', 403); if (!['ACCEPTED', 'REJECTED', 'CANCELLED'].includes(req.body.status)) return fail(res, 'Trạng thái không hợp lệ.'); await ref.update({ status: req.body.status, ownerNote: req.body.ownerNote || null, updatedAt: now() }); return ok(res, 'Đã cập nhật yêu cầu.', true); } catch (error) { return fail(res, error.message, 500); } });
 
+app.post('/api/uploads/image', requireRole('LANDLORD', 'ADMIN'), upload.single('image'), async (req, res) => {
+  try {
+    if (!req.file) return fail(res, 'Vui lòng chọn một ảnh để tải lên.');
+    if (!req.file.mimetype?.startsWith('image/')) return fail(res, 'File phải là ảnh (jpg, png, ...).');
+    const url = await uploadImageBuffer(req.file.buffer, req.file.mimetype, `rooms/${req.user.id}`);
+    return ok(res, 'Đã tải ảnh lên.', { url }, 201);
+  } catch (error) { return fail(res, error.message, 500); }
+});
 app.get('/api/owner/rooms', requireRole('LANDLORD', 'ADMIN'), async (req, res) => { try { let rooms = (await db.collection('rooms').get()).docs.map((doc) => doc.data()).filter((room) => !room.deletedAt); if (req.user.role !== 'ADMIN') rooms = rooms.filter((room) => room.ownerId === req.user.id); return ok(res, '', await Promise.all(rooms.map((room) => roomDto(room, req.user.id)))); } catch (error) { return fail(res, error.message, 500); } });
 app.post('/api/rooms', requireRole('LANDLORD', 'ADMIN'), async (req, res) => { try { const id = numberId(); const room = { id, ...roomPayload(req.body, req.user.id), createdAt: now(), deletedAt: null }; await db.collection('rooms').doc(String(id)).set(room); return ok(res, 'Đăng phòng thành công.', { id }, 201); } catch (error) { return fail(res, error.message); } });
 app.put('/api/rooms/:id', requireRole('LANDLORD', 'ADMIN'), async (req, res) => { try { const room = await roomById(req.params.id); if (!room) return fail(res, 'Không tìm thấy phòng.', 404); if (req.user.role !== 'ADMIN' && room.ownerId !== req.user.id) return fail(res, 'Không có quyền sửa phòng này.', 403); await db.collection('rooms').doc(String(room.id)).update(roomPayload(req.body, room.ownerId)); return ok(res, 'Đã cập nhật phòng.', true); } catch (error) { return fail(res, error.message); } });
