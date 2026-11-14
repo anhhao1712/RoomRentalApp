@@ -75,7 +75,8 @@ class RoomFormActivity : AppCompatActivity() {
             val url = result.data?.get("url")
             if (result.success && url != null) { addImageUrl(url); toast("Đã thêm ảnh.") }
             else toast(result.message.ifBlank { "Tải ảnh lên thất bại." })
-        } catch (_: Exception) { toast("Tải ảnh lên thất bại. Kiểm tra kết nối tới server.") }
+        } catch (e: CancellationException) { throw e }
+        catch (e: Exception) { toast(e.apiMessage() ?: "Tải ảnh lên thất bại. Kiểm tra kết nối tới server.") }
         finally { findViewById<Button>(R.id.pickImage).isEnabled = true }
     }
 

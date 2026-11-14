@@ -5,7 +5,7 @@
         android:allowBackup="true"
         android:label="Thuê Trọ"
         android:theme="@style/Theme.ThueTro"
-        android:usesCleartextTraffic="true">
+        android:usesCleartextTraffic="${usesCleartextTraffic}">
         <activity android:name=".ui.MapActivity" />
         <activity android:name=".ui.RoomFormActivity" />
         <activity android:name=".ui.RoomDetailActivity" />

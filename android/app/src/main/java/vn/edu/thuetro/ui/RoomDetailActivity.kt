@@ -54,7 +54,7 @@ class RoomDetailActivity : AppCompatActivity() {
                         toast(result.message.ifBlank { "Không cập nhật được yêu thích" })
                     }
                 } catch (e: Exception) {
-                    toast("Không cập nhật được yêu thích. Kiểm tra kết nối hoặc đăng nhập.")
+                    toast(e.apiMessage() ?: "Không cập nhật được yêu thích. Kiểm tra kết nối hoặc đăng nhập.")
                 } finally {
                     favoriteButton.isEnabled = true
                 }
@@ -125,7 +125,7 @@ class RoomDetailActivity : AppCompatActivity() {
                         toast(res.message.ifBlank { if (res.success) "Đã gửi yêu cầu" else "Gửi yêu cầu thất bại" })
                         if (res.success) dialog.dismiss()
                     } catch (e: Exception) {
-                        toast("Không gửi được yêu cầu. Vui lòng kiểm tra kết nối hoặc quyền tài khoản.")
+                        toast(e.apiMessage() ?: "Không gửi được yêu cầu. Vui lòng kiểm tra kết nối hoặc quyền tài khoản.")
                     } finally {
                         sendButton.isEnabled = true
                     }

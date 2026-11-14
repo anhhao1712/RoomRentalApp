@@ -1,7 +1,7 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:id="@+id/nav_home" android:icon="@android:drawable/ic_menu_search" android:title="Tìm phòng"/>
-    <item android:id="@+id/nav_favorite" android:icon="@android:drawable/btn_star_big_on" android:title="Đã lưu"/>
-    <item android:id="@+id/nav_requests" android:icon="@android:drawable/ic_menu_agenda" android:title="Yêu cầu"/>
-    <item android:id="@+id/nav_manage" android:icon="@android:drawable/ic_menu_edit" android:title="Quản lý"/>
-    <item android:id="@+id/nav_profile" android:icon="@android:drawable/ic_menu_myplaces" android:title="Cá nhân"/>
+    <item android:id="@+id/nav_home" android:icon="@drawable/ic_nav_home" android:title="Tìm phòng" />
+    <item android:id="@+id/nav_favorite" android:icon="@drawable/ic_nav_favorite" android:title="Đã lưu" />
+    <item android:id="@+id/nav_requests" android:icon="@drawable/ic_nav_requests" android:title="Yêu cầu" />
+    <item android:id="@+id/nav_manage" android:icon="@drawable/ic_nav_manage" android:title="Quản lý" />
+    <item android:id="@+id/nav_profile" android:icon="@drawable/ic_nav_profile" android:title="Cá nhân" />
 </menu>
