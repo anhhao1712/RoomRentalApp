@@ -9,6 +9,7 @@ const { uploadImageBuffer } = require('./cloudinary');
 const { AMENITIES, ROOM_STATUSES, AREAS } = require('./constants');
 const { roomPayload } = require('./room-payload');
 const { createAuth } = require('./auth');
+const { validatePassword } = require('./password-rules');
 
 const app = express();
 const port = Number(process.env.PORT || 8080);
@@ -75,7 +76,9 @@ app.post('/api/auth/login', async (req, res) => {
 app.post('/api/auth/register', async (req, res) => {
   try {
     const username = normalizeUsername(req.body.username);
-    if (!/^[a-z0-9_.-]{4,64}$/.test(username) || String(req.body.password || '').length < 3 || !req.body.fullName?.trim()) return fail(res, 'Tên đăng nhập gồm 4–64 ký tự chữ không dấu, số, dấu chấm, gạch dưới hoặc gạch ngang; mật khẩu tối thiểu 3 ký tự.');
+    if (!/^[a-z0-9_.-]{4,64}$/.test(username) || !req.body.fullName?.trim()) return fail(res, 'Tên đăng nhập gồm 4–64 ký tự chữ không dấu, số, dấu chấm, gạch dưới hoặc gạch ngang và cần nhập họ tên.');
+    const passwordError = validatePassword(req.body.password);
+    if (passwordError) return fail(res, passwordError);
     const usernameRef = db.collection('usernames').doc(username);
     const existing = await usernameRef.get();
     if (existing.exists) return fail(res, 'Tên đăng nhập đã tồn tại.', 409);

@@ -2,11 +2,14 @@ package vn.edu.thuetro.ui
 
 import android.content.Intent
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.textfield.TextInputEditText
+import com.google.android.material.textfield.TextInputLayout
 import kotlinx.coroutines.launch
 import org.json.JSONObject
 import retrofit2.HttpException
@@ -53,6 +56,14 @@ class AuthActivity : AppCompatActivity() {
             renderMode()
         }
         findViewById<Button>(R.id.buttonSubmit).setOnClickListener { submit() }
+        findViewById<View>(R.id.buttonSuggestPassword).setOnClickListener { showPasswordSuggestion() }
+        val onPasswordChanged = object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) = Unit
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) = Unit
+            override fun afterTextChanged(s: Editable?) = refreshPasswordFeedback()
+        }
+        findViewById<TextInputEditText>(R.id.inputPassword).addTextChangedListener(onPasswordChanged)
+        findViewById<TextInputEditText>(R.id.inputConfirmPassword).addTextChangedListener(onPasswordChanged)
         renderMode()
     }
 
@@ -63,7 +74,46 @@ class AuthActivity : AppCompatActivity() {
         val visibility = if (registerMode) View.VISIBLE else View.GONE
         findViewById<View>(R.id.layoutFullName).visibility = visibility
         findViewById<View>(R.id.roleSpinner).visibility = visibility
+        findViewById<View>(R.id.layoutConfirmPassword).visibility = visibility
+        findViewById<View>(R.id.buttonSuggestPassword).visibility = visibility
+        findViewById<View>(R.id.passwordRules).visibility = visibility
+        refreshPasswordFeedback()
         renderLandlordTerms()
+    }
+
+    /** Hiện độ mạnh + lỗi xác nhận ngay khi gõ. Chỉ hoạt động ở chế độ đăng ký. */
+    private fun refreshPasswordFeedback() {
+        val strengthView = findViewById<TextView>(R.id.passwordStrength)
+        val layoutPassword = findViewById<TextInputLayout>(R.id.layoutPassword)
+        val layoutConfirm = findViewById<TextInputLayout>(R.id.layoutConfirmPassword)
+        if (!registerMode) {
+            strengthView.visibility = View.GONE
+            layoutPassword.error = null
+            layoutConfirm.error = null
+            return
+        }
+        val password = findViewById<TextInputEditText>(R.id.inputPassword).text?.toString().orEmpty()
+        val confirm = findViewById<TextInputEditText>(R.id.inputConfirmPassword).text?.toString().orEmpty()
+        val strength = PasswordRules.strength(password)
+        strengthView.visibility = if (password.isEmpty()) View.GONE else View.VISIBLE
+        strengthView.text = strength.label
+        strengthView.setTextColor(strength.color)
+        layoutPassword.error = if (password.isEmpty()) null else PasswordRules.validate(password)
+        layoutConfirm.error = if (confirm.isNotEmpty() && confirm != password) "Mật khẩu xác nhận không khớp." else null
+    }
+
+    private fun showPasswordSuggestion() {
+        val suggestion = PasswordRules.suggest()
+        androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle("Mật khẩu gợi ý")
+            .setMessage("$suggestion\n\nHãy ghi nhớ hoặc lưu lại mật khẩu này trước khi dùng.")
+            .setPositiveButton("Dùng mật khẩu này") { _, _ ->
+                findViewById<TextInputEditText>(R.id.inputPassword).setText(suggestion)
+                findViewById<TextInputEditText>(R.id.inputConfirmPassword).setText(suggestion)
+            }
+            .setNeutralButton("Gợi ý khác") { _, _ -> showPasswordSuggestion() }
+            .setNegativeButton("Hủy", null)
+            .show()
     }
 
     private fun isLandlord() = findViewById<Spinner>(R.id.roleSpinner).selectedItemPosition == 1
@@ -84,9 +134,14 @@ class AuthActivity : AppCompatActivity() {
             toast("Tên đăng nhập cần tối thiểu 4 ký tự.")
             return
         }
-        if (registerMode && password.length < 3) {
-            toast("Mật khẩu cần tối thiểu 3 ký tự.")
-            return
+        if (registerMode) {
+            PasswordRules.validate(password)?.let { toast(it); return }
+            val confirm = findViewById<TextInputEditText>(R.id.inputConfirmPassword).text?.toString().orEmpty()
+            if (confirm != password) {
+                findViewById<TextInputLayout>(R.id.layoutConfirmPassword).error = "Mật khẩu xác nhận không khớp."
+                toast("Mật khẩu xác nhận không khớp.")
+                return
+            }
         }
 
         val submitButton = findViewById<com.google.android.material.button.MaterialButton>(R.id.buttonSubmit)

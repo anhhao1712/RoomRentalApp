@@ -59,3 +59,11 @@ test('expired tokens are rejected before reading the user', async () => {
   await createAuth({ verifyToken: () => { throw new Error('expired'); }, getUser: () => assert.fail('must not read user'), fail: (_, message, code) => { status = code; } })({ headers: { authorization: 'Bearer expired' } }, {}, () => assert.fail('must not authorize'));
   assert.equal(status, 401);
 });
+
+const { validatePassword } = require('../src/password-rules');
+test('password rules require length, upper, lower and digit', () => {
+  assert.equal(validatePassword('Abcdef12'), null);
+  for (const weak of ['', '123', 'abcdefgh', 'ABCDEFGH', 'Abcdefgh', 'abcdef12', 'ABCDEF12', 'Abc 1234', 'A1b'.repeat(30)]) {
+    assert.notEqual(validatePassword(weak), null, weak);
+  }
+});
