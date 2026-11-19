@@ -18,7 +18,7 @@ class RoomDetailActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_room_detail)
         applySafeArea()
-        findViewById<View>(R.id.btnDetailBack).setOnClickListener { finish() }
+        findViewById<com.google.android.material.appbar.MaterialToolbar>(R.id.toolbar).setNavigationOnClickListener { finish() }
         load()
     }
     private fun load()=lifecycleScope.launch{try{val response=ApiClient.service(this@RoomDetailActivity).room(id);room=response.data;if(room==null){toast(response.message);return@launch};bind(room!!)}catch(_:Exception){toast("Không tải được chi tiết phòng.")}}
@@ -26,7 +26,7 @@ class RoomDetailActivity : AppCompatActivity() {
         val session = SessionManager(this)
         val isTenant = session.role == "TENANT"
         findViewById<ImageView>(R.id.roomImage).load(r.images.firstOrNull()){placeholder(android.R.drawable.ic_menu_gallery)}
-        findViewById<TextView>(R.id.status).text=when(r.status) { "AVAILABLE" -> "Còn trống"; "RESERVED" -> "Đã giữ chỗ"; "RENTED" -> "Đã cho thuê"; "HIDDEN" -> "Đã ẩn"; else -> r.status }
+        findViewById<TextView>(R.id.status).setRoomStatus(r.status)
         findViewById<TextView>(R.id.title).text=r.title;findViewById<TextView>(R.id.price).text="${r.price.money()}/tháng"
         findViewById<TextView>(R.id.address).text=listOfNotNull(r.address,r.ward,r.district,r.city).joinToString(", ")
         findViewById<TextView>(R.id.meta).text="${r.area} m² • Tối đa ${r.maxTenants} người • Cọc ${r.deposit.money()}"

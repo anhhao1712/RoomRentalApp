@@ -11,11 +11,17 @@
                 <com.google.android.material.textfield.TextInputLayout android:id="@+id/layoutFullName" android:layout_width="match_parent" android:layout_height="wrap_content" android:visibility="gone" android:hint="Họ và tên">
                     <com.google.android.material.textfield.TextInputEditText android:id="@+id/inputFullName" android:layout_width="match_parent" android:layout_height="wrap_content"/>
                 </com.google.android.material.textfield.TextInputLayout>
+                <com.google.android.material.textfield.TextInputLayout android:id="@+id/layoutEmail" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:visibility="gone" android:hint="Email">
+                    <com.google.android.material.textfield.TextInputEditText android:id="@+id/inputEmail" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="textEmailAddress"/>
+                </com.google.android.material.textfield.TextInputLayout>
+                <com.google.android.material.textfield.TextInputLayout android:id="@+id/layoutPhone" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:visibility="gone" android:hint="Số điện thoại">
+                    <com.google.android.material.textfield.TextInputEditText android:id="@+id/inputPhone" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="phone" android:maxLength="15"/>
+                </com.google.android.material.textfield.TextInputLayout>
                 <com.google.android.material.textfield.TextInputLayout android:id="@+id/layoutPassword" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:hint="Mật khẩu" app:endIconMode="password_toggle">
                     <com.google.android.material.textfield.TextInputEditText android:id="@+id/inputPassword" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="textPassword"/>
                 </com.google.android.material.textfield.TextInputLayout>
                 <TextView android:id="@+id/passwordStrength" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:textSize="13sp" android:visibility="gone"/>
-                <TextView android:id="@+id/passwordRules" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="2dp" android:text="Tối thiểu 8 ký tự, gồm chữ hoa, chữ thường và số." android:textColor="@color/text_secondary" android:textSize="12sp" android:visibility="gone"/>
+                <TextView android:id="@+id/passwordRules" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="2dp" android:text="Tối thiểu 8 ký tự, gồm chữ hoa, chữ thường, số và ký tự đặc biệt." android:textColor="@color/text_secondary" android:textSize="12sp" android:visibility="gone"/>
                 <com.google.android.material.textfield.TextInputLayout android:id="@+id/layoutConfirmPassword" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:hint="Xác nhận mật khẩu" android:visibility="gone" app:endIconMode="password_toggle">
                     <com.google.android.material.textfield.TextInputEditText android:id="@+id/inputConfirmPassword" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="textPassword"/>
                 </com.google.android.material.textfield.TextInputLayout>
@@ -25,6 +31,7 @@
                     <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Điều khoản Chủ trọ:\n1. Cung cấp thông tin phòng chính xác.\n2. Chịu trách nhiệm về tin đăng.\n3. Không đăng tin giả hoặc vi phạm pháp luật.\n4. Đồng ý để ứng dụng xử lý dữ liệu thuê trọ." android:textColor="@color/text_secondary" android:textSize="13sp"/>
                     <CheckBox android:id="@+id/acceptTerms" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Tôi đồng ý với điều khoản và dịch vụ" android:textColor="@color/text_primary"/>
                 </LinearLayout>
+                <TextView android:id="@+id/buttonForgot" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:gravity="end" android:padding="4dp" android:text="Quên mật khẩu?" android:textColor="@color/primary" android:textSize="14sp"/>
                 <com.google.android.material.button.MaterialButton android:id="@+id/buttonSubmit" android:layout_width="match_parent" android:layout_height="52dp" android:layout_marginTop="24dp" android:text="Đăng nhập" app:cornerRadius="12dp"/>
                 <TextView android:id="@+id/buttonToggle" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="18dp" android:gravity="center" android:text="Chưa có tài khoản? Đăng ký" android:textColor="@color/primary" android:textSize="14sp"/>
             </LinearLayout>

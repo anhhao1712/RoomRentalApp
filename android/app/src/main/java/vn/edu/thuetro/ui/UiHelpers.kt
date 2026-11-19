@@ -1,6 +1,7 @@
 package vn.edu.thuetro.ui
 
 import android.content.Context
+import android.content.res.ColorStateList
 import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
 import android.view.Gravity
@@ -104,4 +105,29 @@ fun Throwable.friendlyErrorMessage(defaultMessage: String = "Không kết nối 
         is retrofit2.HttpException -> apiMessage() ?: "Lỗi từ phía máy chủ (${code()})"
         else -> apiMessage() ?: localizedMessage?.takeIf { it.isNotBlank() } ?: defaultMessage
     }
+}
+
+/** Đổi nội dung + màu nhãn trạng thái (nền nhạt, chữ đậm cùng tông). */
+fun TextView.setChip(label: String, background: Int, foreground: Int) {
+    text = label
+    setTextColor(foreground)
+    backgroundTintList = ColorStateList.valueOf(background)
+}
+
+/** Nhãn trạng thái yêu cầu thuê: chờ = vàng, chấp nhận = xanh, từ chối = đỏ, hủy = xám. */
+fun TextView.setRequestStatus(status: String) = when (status) {
+    "PENDING" -> setChip("Đang chờ phản hồi", 0xFFFEF3C7.toInt(), 0xFFB45309.toInt())
+    "ACCEPTED" -> setChip("Đã chấp nhận", 0xFFDCFCE7.toInt(), 0xFF16A34A.toInt())
+    "REJECTED" -> setChip("Đã từ chối", 0xFFFEE2E2.toInt(), 0xFFDC2626.toInt())
+    "CANCELLED" -> setChip("Đã hủy", 0xFFE2E8F0.toInt(), 0xFF64748B.toInt())
+    else -> setChip(status, 0xFFE2E8F0.toInt(), 0xFF64748B.toInt())
+}
+
+/** Nhãn trạng thái phòng: trống = xanh, giữ chỗ = vàng, đã thuê/ẩn = xám. */
+fun TextView.setRoomStatus(status: String) = when (status) {
+    "AVAILABLE" -> setChip("Còn trống", 0xFFDCFCE7.toInt(), 0xFF16A34A.toInt())
+    "RESERVED" -> setChip("Đã giữ chỗ", 0xFFFEF3C7.toInt(), 0xFFB45309.toInt())
+    "RENTED" -> setChip("Đã cho thuê", 0xFFE2E8F0.toInt(), 0xFF64748B.toInt())
+    "HIDDEN" -> setChip("Đã ẩn", 0xFFE2E8F0.toInt(), 0xFF64748B.toInt())
+    else -> setChip(status, 0xFFE2E8F0.toInt(), 0xFF64748B.toInt())
 }

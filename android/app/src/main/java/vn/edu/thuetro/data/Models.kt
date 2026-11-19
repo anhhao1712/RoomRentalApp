@@ -3,6 +3,8 @@ package vn.edu.thuetro.data
 data class ApiResponse<T>(val success: Boolean, val message: String, val data: T?)
 data class LoginRequest(val username: String, val password: String)
 data class RegisterRequest(val username: String, val password: String, val fullName: String, val phone: String?, val email: String?, val role: String, val acceptedTerms: Boolean = false)
+data class ForgotPasswordRequest(val username: String)
+data class ResetPasswordRequest(val username: String, val code: String, val newPassword: String)
 data class AuthResponse(val token: String, val user: User)
 data class User(val id: Long, val username: String, val fullName: String, val phone: String?, val email: String?, val role: String, val acceptedLandlordTerms: Boolean = false, val avatarUrl: String?)
 data class UpdateProfileRequest(val fullName: String, val phone: String?, val email: String?, val avatarUrl: String?)

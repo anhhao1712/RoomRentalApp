@@ -5,5 +5,33 @@
         <item name="colorPrimaryContainer">#DBEAFE</item>
         <item name="colorOnPrimaryContainer">@color/primary_dark</item>
         <item name="colorSecondaryContainer">#DBEAFE</item>
+        <item name="materialButtonStyle">@style/Widget.ThueTro.Button</item>
+    </style>
+
+    <!-- Nút chính: nền xanh, bo góc 12dp (áp dụng mặc định cho mọi MaterialButton) -->
+    <style name="Widget.ThueTro.Button" parent="Widget.Material3.Button">
+        <item name="cornerRadius">12dp</item>
+    </style>
+    <!-- Nút phụ: viền xanh, chữ xanh -->
+    <style name="Widget.ThueTro.Button.Secondary" parent="Widget.Material3.Button.OutlinedButton">
+        <item name="cornerRadius">12dp</item>
+        <item name="strokeColor">@color/primary</item>
+        <item name="android:textColor">@color/primary</item>
+    </style>
+    <!-- Nút nguy hiểm (xóa, đăng xuất, từ chối): nền đỏ nhạt, chữ đỏ -->
+    <style name="Widget.ThueTro.Button.Danger" parent="Widget.Material3.Button">
+        <item name="cornerRadius">12dp</item>
+        <item name="backgroundTint">#FEE2E2</item>
+        <item name="android:textColor">@color/danger</item>
+    </style>
+    <!-- Thanh tiêu đề chuẩn có mũi tên quay lại -->
+    <style name="Widget.ThueTro.Toolbar" parent="Widget.Material3.Toolbar">
+        <item name="android:background">@color/surface</item>
+        <item name="android:elevation">2dp</item>
+        <item name="titleTextColor">@color/text_primary</item>
+    </style>
+    <style name="ShapeAppearance.ThueTro.Circle" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">50%</item>
     </style>
 </resources>

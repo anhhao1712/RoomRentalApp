@@ -14,7 +14,7 @@ class MainActivity : AppCompatActivity() {
         applySafeArea()
         val nav = findViewById<BottomNavigationView>(R.id.bottomNav)
         val role = SessionManager(this).role
-        // Người thuê không cần thấy mục quản lý tin đăng; chủ trọ và quản trị viên vẫn có đủ chức năng.
+
         nav.menu.findItem(R.id.nav_manage).isVisible = role in listOf("LANDLORD", "ADMIN")
         nav.setOnItemSelectedListener { item ->
             when(item.itemId) {

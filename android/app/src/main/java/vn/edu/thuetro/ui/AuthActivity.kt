@@ -16,17 +16,6 @@ import retrofit2.HttpException
 import vn.edu.thuetro.R
 import vn.edu.thuetro.data.*
 
-/**
- * Authentication screen managing user Sign-In (Đăng nhập) and Sign-Up (Đăng ký).
- *
- * Features:
- * - Toggle between Login and Registration modes.
- * - Role selection for Tenants ("Người thuê") and Landlords ("Chủ trọ").
- * - Form validation (username, password length, terms acceptance for landlords).
- * - Executes login/register API calls via [ApiClient].
- * - Saves session tokens upon success and navigates to MainActivity.
- * - Handles network timeouts ([java.net.SocketTimeoutException]) and connection errors gracefully.
- */
 class AuthActivity : AppCompatActivity() {
 
     private var registerMode = false
@@ -56,6 +45,10 @@ class AuthActivity : AppCompatActivity() {
             renderMode()
         }
         findViewById<Button>(R.id.buttonSubmit).setOnClickListener { submit() }
+        findViewById<View>(R.id.buttonForgot).setOnClickListener {
+            val typed = findViewById<TextInputEditText>(R.id.inputUsername).text?.toString()?.trim().orEmpty()
+            startActivity(Intent(this, ForgotPasswordActivity::class.java).putExtra(ForgotPasswordActivity.EXTRA_USERNAME, typed))
+        }
         findViewById<View>(R.id.buttonSuggestPassword).setOnClickListener { showPasswordSuggestion() }
         val onPasswordChanged = object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) = Unit
@@ -73,15 +66,17 @@ class AuthActivity : AppCompatActivity() {
         findViewById<TextView>(R.id.buttonToggle).text = if (registerMode) "Đã có tài khoản? Đăng nhập" else "Chưa có tài khoản? Đăng ký"
         val visibility = if (registerMode) View.VISIBLE else View.GONE
         findViewById<View>(R.id.layoutFullName).visibility = visibility
+        findViewById<View>(R.id.layoutEmail).visibility = visibility
+        findViewById<View>(R.id.layoutPhone).visibility = visibility
         findViewById<View>(R.id.roleSpinner).visibility = visibility
         findViewById<View>(R.id.layoutConfirmPassword).visibility = visibility
         findViewById<View>(R.id.buttonSuggestPassword).visibility = visibility
         findViewById<View>(R.id.passwordRules).visibility = visibility
+        findViewById<View>(R.id.buttonForgot).visibility = if (registerMode) View.GONE else View.VISIBLE
         refreshPasswordFeedback()
         renderLandlordTerms()
     }
 
-    /** Hiện độ mạnh + lỗi xác nhận ngay khi gõ. Chỉ hoạt động ở chế độ đăng ký. */
     private fun refreshPasswordFeedback() {
         val strengthView = findViewById<TextView>(R.id.passwordStrength)
         val layoutPassword = findViewById<TextInputLayout>(R.id.layoutPassword)
@@ -135,6 +130,16 @@ class AuthActivity : AppCompatActivity() {
             return
         }
         if (registerMode) {
+            val email = findViewById<TextInputEditText>(R.id.inputEmail).text?.toString()?.trim().orEmpty()
+            val phone = findViewById<TextInputEditText>(R.id.inputPhone).text?.toString()?.trim().orEmpty()
+            val layoutEmail = findViewById<TextInputLayout>(R.id.layoutEmail)
+            val layoutPhone = findViewById<TextInputLayout>(R.id.layoutPhone)
+            layoutEmail.error = if (ContactRules.isEmail(email)) null else "Email không hợp lệ."
+            layoutPhone.error = if (ContactRules.normalizePhone(phone) != null) null else "Số điện thoại gồm 10 số, bắt đầu bằng 0."
+            if (layoutEmail.error != null || layoutPhone.error != null) {
+                toast("Vui lòng nhập đúng email và số điện thoại.")
+                return
+            }
             PasswordRules.validate(password)?.let { toast(it); return }
             val confirm = findViewById<TextInputEditText>(R.id.inputConfirmPassword).text?.toString().orEmpty()
             if (confirm != password) {
@@ -162,7 +167,9 @@ class AuthActivity : AppCompatActivity() {
                         return@launch
                     }
                     val role = if (landlord) "LANDLORD" else "TENANT"
-                    api.register(RegisterRequest(username, password, fullName, null, null, role, landlord))
+                    val email = findViewById<TextInputEditText>(R.id.inputEmail).text?.toString()?.trim().orEmpty()
+                    val phone = ContactRules.normalizePhone(findViewById<TextInputEditText>(R.id.inputPhone).text?.toString().orEmpty()).orEmpty()
+                    api.register(RegisterRequest(username, password, fullName, phone, email, role, landlord))
                 } else {
                     api.login(LoginRequest(username, password))
                 }

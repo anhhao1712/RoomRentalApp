@@ -11,6 +11,7 @@ function validatePassword(password) {
   if (!/[a-z]/.test(value)) return 'Mật khẩu cần có ít nhất 1 chữ thường.';
   if (!/[A-Z]/.test(value)) return 'Mật khẩu cần có ít nhất 1 chữ hoa.';
   if (!/[0-9]/.test(value)) return 'Mật khẩu cần có ít nhất 1 chữ số.';
+  if (!/[^\p{L}\p{N}\s]/u.test(value)) return 'Mật khẩu cần có ít nhất 1 ký tự đặc biệt (ví dụ @ # $ % ! ?).';
   return null;
 }
 

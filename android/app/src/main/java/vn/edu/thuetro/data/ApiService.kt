@@ -4,9 +4,11 @@ import okhttp3.MultipartBody
 import retrofit2.http.*
 
 interface ApiService {
-    @Multipart @POST("api/uploads/image") suspend fun uploadImage(@Part image: MultipartBody.Part): ApiResponse<Map<String, String>>
+    @Multipart @POST("api/uploads/image") suspend fun uploadImage(@Part image: MultipartBody.Part, @Query("type") type: String? = null): ApiResponse<Map<String, String>>
     @POST("api/auth/login") suspend fun login(@Body body: LoginRequest): ApiResponse<AuthResponse>
     @POST("api/auth/register") suspend fun register(@Body body: RegisterRequest): ApiResponse<AuthResponse>
+    @POST("api/auth/forgot-password") suspend fun forgotPassword(@Body body: ForgotPasswordRequest): ApiResponse<Any>
+    @POST("api/auth/reset-password") suspend fun resetPassword(@Body body: ResetPasswordRequest): ApiResponse<Any>
     @GET("api/rooms") suspend fun rooms(@Query("q") q: String? = null, @Query("district") district: String? = null, @Query("minPrice") minPrice: Long? = null, @Query("maxPrice") maxPrice: Long? = null, @Query("sort") sort: String? = null): ApiResponse<List<Room>>
     @GET("api/rooms/{id}") suspend fun room(@Path("id") id: Long): ApiResponse<Room>
     @GET("api/amenities") suspend fun amenities(): ApiResponse<List<Amenity>>

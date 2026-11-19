@@ -44,7 +44,7 @@ class RoomFormActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_room_form)
         applySafeArea()
-        findViewById<View>(R.id.btnFormBack).setOnClickListener { finish() }
+        findViewById<com.google.android.material.appbar.MaterialToolbar>(R.id.toolbar).setNavigationOnClickListener { finish() }
         api = ApiClient.service(this)
         findViewById<Spinner>(R.id.status).adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, statusLabels)
         findViewById<Spinner>(R.id.areaSpinner).adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, AreaCatalog.options.map { it.label })
@@ -122,7 +122,7 @@ class RoomFormActivity : AppCompatActivity() {
     private fun loadRoom() = lifecycleScope.launch {
         try {
             val room = api.room(roomId).data ?: return@launch
-            findViewById<TextView>(R.id.formTitle).text = "Chỉnh sửa phòng"
+            findViewById<com.google.android.material.appbar.MaterialToolbar>(R.id.toolbar).title = "Chỉnh sửa phòng"
             text(R.id.title, room.title); text(R.id.description, room.description); text(R.id.address, room.address)
             findViewById<Spinner>(R.id.areaSpinner).setSelection(AreaCatalog.options.indexOfFirst { it.district == room.district && it.city == room.city }.coerceAtLeast(0))
             text(R.id.price, room.price.toString()); text(R.id.area, room.area.toString()); text(R.id.maxTenants, room.maxTenants.toString())

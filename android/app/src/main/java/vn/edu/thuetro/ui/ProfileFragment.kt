@@ -2,7 +2,15 @@ package vn.edu.thuetro.ui
 
 import android.content.Intent
 import android.os.Bundle
+import android.net.Uri
 import android.view.*
+import android.widget.ImageView
+import androidx.activity.result.contract.ActivityResultContracts
+import coil.load
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.toRequestBody
+import kotlin.coroutines.cancellation.CancellationException
 import android.widget.CheckBox
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -16,9 +24,13 @@ import vn.edu.thuetro.data.*
 class ProfileFragment : Fragment(R.layout.fragment_profile) {
     private var currentRole = "TENANT"
     private var acceptedLandlordTerms = false
+    private var loadedUser: User? = null
+    private var avatarUrl: String? = null
+    private val pickAvatar = registerForActivityResult(ActivityResultContracts.GetContent()) { uri -> uri?.let { uploadAvatar(it) } }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         (activity as MainActivity).title("Tài khoản")
+        view.findViewById<View>(R.id.avatarContainer).setOnClickListener { pickAvatar.launch("image/*") }
         view.findViewById<View>(R.id.saveProfile).setOnClickListener { save() }
         view.findViewById<View>(R.id.changeRole).setOnClickListener { changeRole() }
         view.findViewById<View>(R.id.logout).setOnClickListener {
@@ -34,7 +46,10 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
             val user = ApiClient.service(requireContext()).me().data ?: return@launch
             currentRole = user.role
             acceptedLandlordTerms = user.acceptedLandlordTerms
+            loadedUser = user
+            avatarUrl = user.avatarUrl
             val root = view ?: return@launch
+            renderAvatar()
             root.findViewById<TextView>(R.id.userRole).text = when (user.role) { "ADMIN" -> "Quản trị viên"; "LANDLORD" -> "Chủ trọ"; else -> "Người thuê" }
             root.findViewById<TextView>(R.id.username).text = "@${user.username}"
             set(R.id.fullName, user.fullName); set(R.id.phone, user.phone); set(R.id.email, user.email)
@@ -48,10 +63,11 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
     private fun save() = lifecycleScope.launch {
         try {
             val name = value(R.id.fullName)
-            val result = ApiClient.service(requireContext()).updateProfile(UpdateProfileRequest(name, value(R.id.phone).ifBlank { null }, value(R.id.email).ifBlank { null }, null))
+            val result = ApiClient.service(requireContext()).updateProfile(UpdateProfileRequest(name, value(R.id.phone).ifBlank { null }, value(R.id.email).ifBlank { null }, avatarUrl))
             if (result.success) SessionManager(requireContext()).fullName = name
             requireContext().toast(result.message)
-        } catch (_: Exception) { requireContext().toast("Không lưu được hồ sơ.") }
+        } catch (e: CancellationException) { throw e
+        } catch (e: Exception) { requireContext().toast(e.apiMessage() ?: "Không lưu được hồ sơ.") }
     }
 
     private fun changeRole() {
@@ -62,7 +78,7 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
         if (value(R.id.phone).isBlank()) { requireContext().toast("Vui lòng nhập số điện thoại trước khi chuyển sang Chủ trọ."); return }
         lifecycleScope.launch {
             try {
-                val saved = ApiClient.service(requireContext()).updateProfile(UpdateProfileRequest(value(R.id.fullName), value(R.id.phone), value(R.id.email).ifBlank { null }, null))
+                val saved = ApiClient.service(requireContext()).updateProfile(UpdateProfileRequest(value(R.id.fullName), value(R.id.phone), value(R.id.email).ifBlank { null }, avatarUrl))
                 if (saved.success) {
                     if (acceptedLandlordTerms) submitRole("LANDLORD", false) else showTermsDialog()
                 }
@@ -87,6 +103,40 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
             requireContext().toast(result.message)
             if (result.success) { SessionManager(requireContext()).role = role; requireActivity().recreate() }
         } catch (_: Exception) { requireContext().toast("Không thể chuyển vai trò.") }
+    }
+
+    private fun renderAvatar() {
+        val image = view?.findViewById<ImageView>(R.id.avatar) ?: return
+        if (avatarUrl.isNullOrBlank()) image.setImageResource(R.drawable.ic_avatar_placeholder)
+        else image.load(avatarUrl) { crossfade(true); placeholder(R.drawable.ic_avatar_placeholder); error(R.drawable.ic_avatar_placeholder) }
+    }
+
+    /** Tải ảnh lên (Cloudinary qua server) rồi lưu địa chỉ ảnh vào hồ sơ. Giữ nguyên thông tin đã lưu trên server. */
+    private fun uploadAvatar(uri: Uri) = lifecycleScope.launch {
+        val ctx = context ?: return@launch
+        val base = loadedUser
+        if (base == null) { ctx.toast("Hồ sơ chưa tải xong, vui lòng thử lại."); return@launch }
+        try {
+            val bytes = ctx.contentResolver.openInputStream(uri)?.use { it.readBytes() }
+            if (bytes == null) { ctx.toast("Không đọc được ảnh đã chọn."); return@launch }
+            if (bytes.size > 5 * 1024 * 1024) { ctx.toast("Ảnh quá lớn, vui lòng chọn ảnh dưới 5 MB."); return@launch }
+            ctx.toast("Đang tải ảnh lên...")
+            val mimeType = ctx.contentResolver.getType(uri) ?: "image/jpeg"
+            val ext = if (mimeType.contains("png")) "png" else "jpg"
+            val part = MultipartBody.Part.createFormData("image", "avatar.$ext", bytes.toRequestBody(mimeType.toMediaTypeOrNull()))
+            val api = ApiClient.service(ctx)
+            val uploaded = api.uploadImage(part, "avatar")
+            val url = uploaded.data?.get("url")
+            if (!uploaded.success || url == null) { ctx.toast(uploaded.message.ifBlank { "Tải ảnh lên thất bại." }); return@launch }
+            val saved = api.updateProfile(UpdateProfileRequest(base.fullName, base.phone, base.email, url))
+            if (saved.success) {
+                avatarUrl = url
+                loadedUser = base.copy(avatarUrl = url)
+                renderAvatar()
+                ctx.toast("Đã cập nhật ảnh đại diện.")
+            } else ctx.toast(saved.message)
+        } catch (e: CancellationException) { throw e
+        } catch (e: Exception) { context?.toast(e.friendlyErrorMessage("Không đổi được ảnh đại diện.")) }
     }
 
     private fun value(id: Int) = view!!.findViewById<TextInputEditText>(id).text?.toString()?.trim().orEmpty()

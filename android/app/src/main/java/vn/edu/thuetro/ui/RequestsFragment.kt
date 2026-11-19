@@ -35,7 +35,7 @@ class RequestAdapter(private val owner:Boolean,private val action:(RentalRequest
         viewingTime.visibility = if (r.viewingTime.isNullOrBlank()) View.GONE else View.VISIBLE
         ownerNote.text = r.ownerNote?.let { "Phản hồi của chủ trọ: $it" }
         ownerNote.visibility = if (r.ownerNote.isNullOrBlank()) View.GONE else View.VISIBLE
-        status.text=when(r.status){"PENDING"->"Đang chờ phản hồi";"ACCEPTED"->"Đã chấp nhận";"REJECTED"->"Đã từ chối";"CANCELLED"->"Đã hủy";else->r.status}
+        status.setRequestStatus(r.status)
         actions.visibility=if(owner&&r.status=="PENDING")View.VISIBLE else View.GONE
         accept.setOnClickListener{action(r,"ACCEPTED")};reject.setOnClickListener{action(r,"REJECTED")}
     }}
