@@ -95,3 +95,49 @@ test('phone numbers are normalized to 10 digits and invalid ones rejected', () =
   for (const bad of ['', null, '12345', '091234567', '09123456789', 'abcdefghij']) assert.equal(normalizePhone(bad), null, String(bad));
   assert.equal(isEmail2('a@b.vn'), true);
 });
+
+const {
+  normalizeText,
+  matchesQuery,
+  conversationIdFor,
+  validateViewingTime,
+  parseAmenityIds,
+  matchesAmenities
+} = require('../src/search-helpers');
+test('search helpers match accent-insensitive text, usernames and phone numbers', () => {
+  assert.equal(normalizeText('  TP. Thủ Đức  '), 'tp. thu duc');
+  assert.equal(normalizeText('Đặng Minh Chủ'), 'dang minh chu');
+  assert.equal(matchesQuery('thu duc', ['Phòng trọ Thủ Đức'], []), true);
+  assert.equal(matchesQuery('minh chu', ['Nguyễn Minh Chủ'], []), true);
+  assert.equal(matchesQuery('0901 234 567', ['Phòng mới'], ['0901234567']), true);
+  assert.equal(matchesQuery('090123', ['Phòng mới'], ['0901234567']), true);
+  assert.equal(matchesQuery('12', ['Phòng mới'], ['0901234567']), false);
+  assert.equal(matchesQuery('', ['Phòng mới'], []), true);
+});
+test('conversationIdFor generates symmetric IDs and rejects invalid or self-chat IDs', () => {
+  assert.equal(conversationIdFor(5, 2), '2_5');
+  assert.equal(conversationIdFor('2', '5'), '2_5');
+  assert.throws(() => conversationIdFor(3, 3));
+  assert.throws(() => conversationIdFor(0, 3));
+  assert.throws(() => conversationIdFor('abc', 3));
+});
+test('validateViewingTime enforces 07:00 to 21:00 range', () => {
+  assert.equal(validateViewingTime('07:00 - 23/11/2026'), null);
+  assert.equal(validateViewingTime('12:30'), null);
+  assert.equal(validateViewingTime('21:00 - 23/11/2026'), null);
+  assert.equal(validateViewingTime('18:30 - 23/11/2026'), null);
+  assert.equal(validateViewingTime(''), null);
+  assert.notEqual(validateViewingTime('06:59 - 23/11/2026'), null);
+  assert.notEqual(validateViewingTime('21:01 - 23/11/2026'), null);
+  assert.notEqual(validateViewingTime('23:00'), null);
+  assert.notEqual(validateViewingTime('00:30'), null);
+});
+test('parseAmenityIds and matchesAmenities parse unique positive IDs and enforce all selected', () => {
+  assert.deepEqual(parseAmenityIds('1, 2,2,abc,-1,0,4'), [1, 2, 4]);
+  assert.deepEqual(parseAmenityIds(''), []);
+  assert.deepEqual(parseAmenityIds(null), []);
+  assert.equal(matchesAmenities([1, 2, 4], []), true);
+  assert.equal(matchesAmenities([1, 2, 4], [1, 4]), true);
+  assert.equal(matchesAmenities([1, 2], [1, 4]), false);
+  assert.equal(matchesAmenities(null, [1]), false);
+});
