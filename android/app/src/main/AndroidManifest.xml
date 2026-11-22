@@ -2,7 +2,7 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <application
-        android:allowBackup="true"
+        android:allowBackup="false"
         android:label="Thuê Trọ"
         android:localeConfig="@xml/locales_config"
         android:theme="@style/Theme.ThueTro"
@@ -19,7 +19,8 @@
         <activity android:name=".ui.ManageRoomsActivity" />
         <activity android:name=".ui.MainActivity" />
         <activity android:name=".ui.MapPickerActivity" />
-        <activity android:name=".ui.AuthActivity" android:exported="true">
+        <activity android:name=".ui.AuthActivity" android:windowSoftInputMode="adjustResize" />
+        <activity android:name=".ui.SplashActivity" android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
