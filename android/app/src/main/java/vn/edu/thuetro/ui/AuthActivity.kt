@@ -25,10 +25,6 @@ class AuthActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         session = SessionManager(this)
-        if (session.token != null) {
-            openMain()
-            return
-        }
         setContentView(R.layout.activity_auth)
         applySafeArea()
         api = ApiClient.service(this)
@@ -195,7 +191,10 @@ class AuthActivity : AppCompatActivity() {
     }
 
     private fun openMain() {
-        startActivity(Intent(this, MainActivity::class.java))
+        val intent = Intent(this, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        }
+        startActivity(intent)
         finish()
     }
 }
