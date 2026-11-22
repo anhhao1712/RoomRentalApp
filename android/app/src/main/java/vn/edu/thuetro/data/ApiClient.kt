@@ -1,4 +1,3 @@
-
 package vn.edu.thuetro.data
 
 import android.content.Context
@@ -8,14 +7,27 @@ import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import vn.edu.thuetro.BuildConfig
-import java.net.Proxy
 import java.util.concurrent.TimeUnit
 
 object ApiClient {
 
-    fun service(context: Context): ApiService {
+    @Volatile
+    private var retrofit: Retrofit? = null
 
-        val session = SessionManager(context.applicationContext)
+    fun service(context: Context): ApiService {
+        val appContext = context.applicationContext
+
+        val instance = retrofit ?: synchronized(this) {
+            retrofit ?: createRetrofit(appContext).also {
+                retrofit = it
+            }
+        }
+
+        return instance.create(ApiService::class.java)
+    }
+
+    private fun createRetrofit(context: Context): Retrofit {
+        val session = SessionManager(context)
 
         val auth = Interceptor { chain ->
             val request = chain.request()
@@ -31,15 +43,20 @@ object ApiClient {
         }
 
         val logger = HttpLoggingInterceptor().apply {
-            level = HttpLoggingInterceptor.Level.BASIC
+            level = if (BuildConfig.DEBUG) {
+                HttpLoggingInterceptor.Level.BASIC
+            } else {
+                HttpLoggingInterceptor.Level.NONE
+            }
         }
 
         val client = OkHttpClient.Builder()
-            .proxy(Proxy.NO_PROXY)
             .addInterceptor(auth)
             .addInterceptor(logger)
             .connectTimeout(15, TimeUnit.SECONDS)
-            .readTimeout(20, TimeUnit.SECONDS)
+            .readTimeout(30, TimeUnit.SECONDS)
+            .writeTimeout(30, TimeUnit.SECONDS)
+            .retryOnConnectionFailure(true)
             .build()
 
         return Retrofit.Builder()
@@ -47,6 +64,5 @@ object ApiClient {
             .client(client)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
-            .create(ApiService::class.java)
     }
 }

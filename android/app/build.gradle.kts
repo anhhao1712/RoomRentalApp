@@ -9,7 +9,10 @@ val localConfig = Properties().apply {
     val configFile = rootProject.file("local.properties")
     if (configFile.exists()) configFile.inputStream().use(::load)
 }
-val apiBaseUrl = localConfig.getProperty("API_BASE_URL", "http://10.0.2.2:8080/")
+// -PAPI_BASE_URL can override the local emulator URL for a hosted HTTPS backend.
+val apiBaseUrl = providers.gradleProperty("API_BASE_URL")
+    .orElse(localConfig.getProperty("API_BASE_URL", "http://10.0.2.2:8080/"))
+    .get()
     .trim()
     .let { if (it.endsWith('/')) it else "$it/" }
 
@@ -46,6 +49,15 @@ android {
         viewBinding = true;
         resValues = true
     }
+    // HTTP chỉ dùng cho môi trường phát triển local; bản release yêu cầu HTTPS.
+    buildTypes {
+        getByName("debug") {
+            manifestPlaceholders["usesCleartextTraffic"] = "true"
+        }
+        getByName("release") {
+            manifestPlaceholders["usesCleartextTraffic"] = "false"
+        }
+    }
 }
 
 dependencies {
@@ -54,6 +66,7 @@ dependencies {
     implementation(libs.material)
     implementation(libs.androidx.constraintlayout)
     implementation(libs.androidx.recyclerview)
+    implementation("androidx.viewpager2:viewpager2:1.0.0")
     implementation(libs.androidx.lifecycle.runtime)
     implementation(libs.androidx.lifecycle.viewmodel)
     implementation(libs.retrofit)
