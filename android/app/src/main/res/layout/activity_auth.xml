@@ -9,7 +9,7 @@
                     <com.google.android.material.textfield.TextInputEditText android:id="@+id/inputUsername" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="text"/>
                 </com.google.android.material.textfield.TextInputLayout>
                 <com.google.android.material.textfield.TextInputLayout android:id="@+id/layoutFullName" android:layout_width="match_parent" android:layout_height="wrap_content" android:visibility="gone" android:hint="Họ và tên">
-                    <com.google.android.material.textfield.TextInputEditText android:id="@+id/inputFullName" android:layout_width="match_parent" android:layout_height="wrap_content"/>
+                    <com.google.android.material.textfield.TextInputEditText android:id="@+id/inputFullName" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="textPersonName|textCapWords"/>
                 </com.google.android.material.textfield.TextInputLayout>
                 <com.google.android.material.textfield.TextInputLayout android:id="@+id/layoutEmail" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:visibility="gone" android:hint="Email">
                     <com.google.android.material.textfield.TextInputEditText android:id="@+id/inputEmail" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="textEmailAddress"/>

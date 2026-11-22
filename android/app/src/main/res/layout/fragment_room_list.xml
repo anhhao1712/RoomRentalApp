@@ -1,11 +1,156 @@
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical" android:padding="16dp">
-    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
-        <EditText android:id="@+id/inputSearch" android:layout_width="0dp" android:layout_height="48dp" android:layout_weight="1" android:background="@drawable/bg_card" android:hint="Tìm khu vực, tên phòng..." android:paddingHorizontal="14dp" android:singleLine="true" android:imeOptions="actionSearch"/>
-        <ImageButton android:id="@+id/buttonFilter" android:layout_width="48dp" android:layout_height="48dp" android:layout_marginStart="8dp" android:background="@drawable/bg_card" android:contentDescription="Lọc" android:src="@android:drawable/ic_menu_sort_by_size"/>
-        <ImageButton android:id="@+id/buttonMap" android:layout_width="48dp" android:layout_height="48dp" android:layout_marginStart="8dp" android:background="@drawable/bg_card" android:contentDescription="Bản đồ" android:src="@android:drawable/ic_menu_mapmode"/>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_weight="1"
+            android:background="@drawable/bg_pill_input"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingHorizontal="12dp">
+
+            <ImageView
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:importantForAccessibility="no"
+                android:src="@drawable/ic_search" />
+
+            <EditText
+                android:id="@+id/inputSearch"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_marginStart="8dp"
+                android:layout_weight="1"
+                android:background="@android:color/transparent"
+                android:hint="Tìm phòng, khu vực, tên hoặc SĐT chủ trọ..."
+                android:imeOptions="actionSearch"
+                android:inputType="text|textCapSentences"
+                android:maxLines="1"
+                android:textColor="@color/text_primary"
+                android:textColorHint="@color/text_secondary"
+                android:textSize="14sp" />
+
+            <ImageButton
+                android:id="@+id/buttonClearSearch"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Xóa tìm kiếm"
+                android:padding="6dp"
+                android:src="@drawable/ic_close"
+                android:visibility="gone" />
+        </LinearLayout>
+
+        <FrameLayout
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginStart="8dp">
+
+            <ImageButton
+                android:id="@+id/buttonFilter"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="@drawable/bg_pill_input"
+                android:contentDescription="Lọc"
+                android:padding="12dp"
+                android:src="@drawable/ic_filter" />
+
+            <View
+                android:id="@+id/filterDot"
+                android:layout_width="9dp"
+                android:layout_height="9dp"
+                android:layout_gravity="top|end"
+                android:layout_marginTop="8dp"
+                android:layout_marginEnd="8dp"
+                android:background="@drawable/bg_dot_blue"
+                android:visibility="gone" />
+        </FrameLayout>
+
+        <ImageButton
+            android:id="@+id/buttonMap"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginStart="8dp"
+            android:background="@drawable/bg_pill_input"
+            android:contentDescription="Bản đồ"
+            android:padding="12dp"
+            android:src="@drawable/ic_map" />
     </LinearLayout>
-    <TextView android:id="@+id/roomCount" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="14dp" android:textColor="@color/text_secondary"/>
-    <ProgressBar android:id="@+id/progress" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="center" android:layout_marginTop="20dp"/>
-    <androidx.recyclerview.widget.RecyclerView android:id="@+id/roomRecycler" android:layout_width="match_parent" android:layout_height="0dp" android:layout_marginTop="8dp" android:layout_weight="1" android:clipToPadding="false" android:paddingBottom="12dp"/>
-    <TextView android:id="@+id/emptyText" android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center" android:text="Chưa có phòng phù hợp" android:textColor="@color/text_secondary" android:visibility="gone"/>
+
+    <LinearLayout
+        android:id="@+id/activeFilterRow"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/activeFilterText"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textColor="@color/primary"
+            android:textSize="12sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/buttonClearFilter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingHorizontal="8dp"
+            android:paddingVertical="4dp"
+            android:text="Xóa lọc"
+            android:textColor="@color/danger"
+            android:textSize="12sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/roomCount"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:textColor="@color/text_secondary"
+        android:textSize="13sp" />
+
+    <ProgressBar
+        android:id="@+id/progress"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginTop="20dp" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/roomRecycler"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="6dp"
+        android:layout_weight="1"
+        android:clipToPadding="false"
+        android:paddingBottom="12dp" />
+
+    <TextView
+        android:id="@+id/emptyText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:paddingVertical="24dp"
+        android:text="Chưa có phòng hoặc chủ trọ phù hợp"
+        android:textColor="@color/text_secondary"
+        android:visibility="gone" />
 </LinearLayout>

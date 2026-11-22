@@ -4,12 +4,19 @@
     <application
         android:allowBackup="true"
         android:label="Thuê Trọ"
+        android:localeConfig="@xml/locales_config"
         android:theme="@style/Theme.ThueTro"
         android:usesCleartextTraffic="${usesCleartextTraffic}">
         <activity android:name=".ui.ForgotPasswordActivity" android:windowSoftInputMode="adjustResize" />
         <activity android:name=".ui.MapActivity" />
         <activity android:name=".ui.RoomFormActivity" />
         <activity android:name=".ui.RoomDetailActivity" />
+        <activity android:name=".ui.PhotoViewerActivity" />
+        <activity android:name=".ui.UserProfileActivity" />
+        <activity android:name=".ui.ChatActivity" android:windowSoftInputMode="adjustResize" />
+        <activity android:name=".ui.NotificationsActivity" />
+        <activity android:name=".ui.RequestsActivity" />
+        <activity android:name=".ui.ManageRoomsActivity" />
         <activity android:name=".ui.MainActivity" />
         <activity android:name=".ui.MapPickerActivity" />
         <activity android:name=".ui.AuthActivity" android:exported="true">
